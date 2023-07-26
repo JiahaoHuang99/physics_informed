@@ -33,7 +33,8 @@ def train_deeponet_cp(config):
     model = DeepONetCP(branch_layer=[u0_dim] + config['model']['branch_layers'],
                        trunk_layer=[3] + config['model']['trunk_layers']).to(device)
     optimizer = Adam(model.parameters(), lr=config['train']['base_lr'])
-    scheduler = MultiStepLR(optimizer, milestones=config['train']['milestones'],
+    scheduler = MultiStepLR(optimizer,
+                            milestones=config['train']['milestones'],
                             gamma=config['train']['scheduler_gamma'])
     pbar = range(config['train']['epochs'])
     pbar = tqdm(pbar, dynamic_ncols=True, smoothing=0.1)

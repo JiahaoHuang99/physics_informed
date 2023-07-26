@@ -36,7 +36,7 @@ def FDM_Darcy(u, a, D=1):
     return Du
 
 
-def darcy_loss(u, a):
+def darcy_loss(u, a, beta=1):
     batchsize = u.size(0)
     size = u.size(1)
     u = u.reshape(batchsize, size, size)
@@ -53,7 +53,7 @@ def darcy_loss(u, a):
     # loss_u = lploss.abs(boundary_u, truth_u)
 
     Du = FDM_Darcy(u, a)
-    f = torch.ones(Du.shape, device=u.device)
+    f = torch.ones(Du.shape, device=u.device) * beta
     loss_f = lploss.rel(Du, f)
 
     # im = (Du-f)[0].detach().cpu().numpy()

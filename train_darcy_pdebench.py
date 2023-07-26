@@ -6,7 +6,6 @@ from tqdm import tqdm
 
 import numpy as np
 import torch
-
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
@@ -14,8 +13,10 @@ import utils.util_metrics
 from models import FNO2d
 
 from train_utils.losses import LpLoss, darcy_loss 
-from train_utils.datasets import DarcyFlow, DarcyIC, sample_data
+from train_utils.datasets import sample_data
 from train_utils.utils import save_ckpt, count_params, dict2str
+
+from data_pde.dataset_darcy_flow_pdebench_d2 import DarcyFlowDataset, DarcyFlowDatasetIC
 
 try:
     import wandb
@@ -44,6 +45,10 @@ def eval_darcy(model,
         a, u = a.to(device), u.to(device)
         out = model(a).squeeze(dim=-1)
         out = out * mollifier
+
+        bs = a.shape[0]
+        out = out.reshape(bs, -1).unsqueeze(-1).unsqueeze(-1)
+        u = u.reshape(bs, -1).unsqueeze(-1).unsqueeze(-1)
         step_eval_dict = utils.util_metrics.eval_darcy(out, u, metrics_list)
         for metric_name in metrics_list:
             epoch_metrics_dict[metric_name].append(step_eval_dict[metric_name])
@@ -114,7 +119,7 @@ def train(model,
             out = model(ic).squeeze(dim=-1)
             out = out * ic_mol
             u0 = ic[..., 0]
-            f_loss = darcy_loss(out, u0)
+            f_loss = darcy_loss(out, u0, beta=config['data']['train']['beta'])
         else:
             f_loss = torch.zeros(1, device=device)
 
@@ -129,8 +134,8 @@ def train(model,
         log_dict['pdf'] = f_loss.item()
 
         if e % eval_step == 0:
-            epoch_metrics_dict, epoch_metrics_ave_dict = eval_darcy(model, val_loader, config['data']['metrics_list'], device)
-            for metric_name in config['data']['metrics_list']:
+            epoch_metrics_dict, epoch_metrics_ave_dict = eval_darcy(model, val_loader, config['data']['val']['metrics_list'], device)
+            for metric_name in config['data']['val']['metrics_list']:
                 log_dict[f'VAL METRICS/{metric_name}'] = epoch_metrics_ave_dict[metric_name]
 
         logstr = dict2str(log_dict)
@@ -179,11 +184,7 @@ def subprocess(args):
     
     if args.test:
         batchsize = config['test']['batchsize']
-        testset = DarcyFlow(datapath=config['test']['path'], 
-                            nx=config['test']['nx'], 
-                            sub=config['test']['sub'], 
-                            offset=config['test']['offset'], 
-                            num=config['test']['n_sample'])
+        testset = DarcyFlowDataset(dataset_params=config['data'], split='test')
         testloader = DataLoader(testset, batch_size=batchsize, num_workers=4)
         criterion = LpLoss()
         test_err, std_err = eval_darcy(model, testloader, criterion, device)
@@ -191,26 +192,14 @@ def subprocess(args):
     else:
         # training set
         batchsize = config['train']['batchsize']
-        u_set = DarcyFlow(datapath=config['data']['path'], 
-                          nx=config['data']['nx'], 
-                          sub=config['data']['sub'], 
-                          offset=config['data']['offset'], 
-                          num=config['data']['n_sample'])
+        u_set = DarcyFlowDataset(dataset_params=config['data'], split='train')
         u_loader = DataLoader(u_set, batch_size=batchsize, num_workers=4, shuffle=True)
 
-        ic_set = DarcyIC(datapath=config['data']['path'], 
-                         nx=config['data']['nx'], 
-                         sub=config['data']['pde_sub'], 
-                         offset=config['data']['offset'], 
-                         num=config['data']['n_sample'])
+        ic_set = DarcyFlowDatasetIC(dataset_params=config['data'], split='train')
         ic_loader = DataLoader(ic_set, batch_size=batchsize, num_workers=4, shuffle=True)
 
         # val set
-        valset = DarcyFlow(datapath=config['test']['path'], 
-                           nx=config['test']['nx'], 
-                           sub=config['test']['sub'], 
-                           offset=config['test']['offset'], 
-                           num=config['test']['n_sample'])
+        valset = DarcyFlowDataset(dataset_params=config['data'], split='val')
         val_loader = DataLoader(valset, batch_size=batchsize, num_workers=4)
 
         print(f'Train set: {len(u_set)}; test set: {len(valset)}.')
@@ -222,6 +211,7 @@ def subprocess(args):
             ckpt = torch.load(ckpt_path)
             optimizer.load_state_dict(ckpt['optim'])
             scheduler.load_state_dict(ckpt['scheduler'])
+
         train(model, 
               u_loader,
               ic_loader, 
@@ -239,7 +229,7 @@ if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True
     # parse options
     parser = ArgumentParser(description='Basic paser')
-    parser.add_argument('--config', type=str, default='configs/pino/PINO-DarcyFlow-Caltech-debug.yaml', help='Path to the configuration file')
+    parser.add_argument('--config', type=str, default='configs/pino/PINO-DarcyFlow-PDEBench-debug.yaml', help='Path to the configuration file')
     parser.add_argument('--log', action='store_true', help='Turn on the wandb')
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--ckpt', type=str, default=None)
