@@ -24,7 +24,6 @@ except ImportError:
     wandb = None
 
 
-
 def get_molifier(mesh, device):
     mollifier = 0.001 * torch.sin(np.pi * mesh[..., 0]) * torch.sin(np.pi * mesh[..., 1])
     return mollifier.to(device)
@@ -67,6 +66,7 @@ def train(model,
           optimizer, 
           scheduler,
           device, config, args):
+
     save_step = config['train']['save_step']
     eval_step = config['train']['eval_step']
 
@@ -97,6 +97,7 @@ def train(model,
 
     u_loader = sample_data(train_u_loader)
     ic_loader = sample_data(ic_loader)
+
     for e in pbar:
         log_dict = {}
 
@@ -202,7 +203,7 @@ def subprocess(args):
         valset = DarcyFlowDataset(dataset_params=config['data'], split='val')
         val_loader = DataLoader(valset, batch_size=batchsize, num_workers=4)
 
-        print(f'Train set: {len(u_set)}; test set: {len(valset)}.')
+        print(f'Train set: {len(u_set)}; Test set: {len(valset)}.')
         optimizer = Adam(model.parameters(), lr=config['train']['base_lr'])
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, 
                                                          milestones=config['train']['milestones'], 
@@ -229,7 +230,7 @@ if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True
     # parse options
     parser = ArgumentParser(description='Basic paser')
-    parser.add_argument('--config', type=str, default='configs/pino/PINO-DarcyFlow-PDEBench-debug.yaml', help='Path to the configuration file')
+    parser.add_argument('--config', type=str, default='configs/pino/PINO-DarcyFlow-PDEBench-beta1.0_res_Dx8_PIx2.yaml', help='Path to the configuration file')
     parser.add_argument('--log', action='store_true', help='Turn on the wandb')
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--ckpt', type=str, default=None)

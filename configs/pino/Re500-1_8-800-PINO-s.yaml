@@ -1,12 +1,12 @@
 data:
   name: KF
-  paths: ['/raid/hongkai/NS-Re500_T300_id0-shuffle.npy']
+  paths: ['/media/ssd/data_temp/PDE/data/PINO/NS/NS-Re500_T300_id0-shuffle.npy']
   Re: 500
   offset: 0
   total_num: 300
   raw_res: [256, 256, 513]
-  n_data_samples: 100
-  data_res: [64, 64, 257]  # resolution in 1 second
+  n_data_samples: 10
+  data_res: [32, 32, 129]  # resolution in 1 second
   pde_res: [256, 256, 513]   # resolution in 1 second
   a_offset: 0
   n_a_samples: 275
@@ -25,7 +25,7 @@ model:
   pad_ratio: [0.0, 0.125]
 
 train:
-  batchsize: 2
+  batchsize: 1
   start_iter: 0
   num_iter: 200_001
   milestones: [20_000, 60_000, 120_000]

@@ -1,24 +1,23 @@
-from datetime import datetime
 import os
 import yaml
 import random
 from argparse import ArgumentParser
-import math
 from tqdm import tqdm
 
 import numpy as np
-
 import torch
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
 import utils.util_metrics
-from models import FNO3d
+from utils.util_torch_fdm import gradient_xy_vector, gradient_xy_scalar, gradient_t, laplacian
+from models import FNO3d_incomNS2D
 
-from train_utils.losses import LpLoss, PINO_loss3d, get_forcing
-from train_utils.datasets import KFDataset, KFaDataset, sample_data
+from train_utils.losses import LpLoss
+from train_utils.datasets import sample_data
 from train_utils.utils import save_ckpt, count_params, dict2str
-from data_pde.dataset_incompressible_navier_stokes_2d_pdebench_d2 import IncompressibleNavierStokes2DDataset
+
+from data_pde.dataset_incompressible_navier_stokes_2d_pdebench_d2 import IncompressibleNavierStokes2DDataset, IncompressibleNavierStokes2DDataseta
 
 try:
     import wandb
@@ -32,17 +31,19 @@ def eval_ns(model,
             metrics_list,
             device='cpu'):
     model.eval()
+
     epoch_metrics_dict = {}
     for metric_name in metrics_list:
         epoch_metrics_dict[metric_name] = []
-    for u, a in val_loader:  # FIXME
-        a, u = a.to(device), u.to(device)
-        out = model(a).squeeze(dim=-1)
+    for a_in, u in val_loader:  # FIXME
+        a_in, u = a_in.to(device), u.to(device)
+        out = model(a_in).squeeze(dim=-1)
 
-        bs = a.shape[0]
-        out = out.reshape(bs, -1).unsqueeze(-1).unsqueeze(-1)  # FIXME
-        u = u.reshape(bs, -1).unsqueeze(-1).unsqueeze(-1)  # FIXME
-        step_eval_dict = utils.util_metrics.eval_darcy(out, u, metrics_list)
+        # remove the first time point
+        u = u[:, :, :, 1:, :]
+        out = out[:, :, :, 1:, :]
+
+        step_eval_dict = utils.util_metrics.eval_incom_ns2d(out, u, metrics_list)
         for metric_name in metrics_list:
             epoch_metrics_dict[metric_name].append(step_eval_dict[metric_name])
 
@@ -50,6 +51,7 @@ def eval_ns(model,
     for metric_name in metrics_list:
         epoch_metrics_ave_dict[metric_name] = np.mean(epoch_metrics_dict[metric_name])
 
+    return epoch_metrics_dict, epoch_metrics_ave_dict
 
 
 def train_ns(model, 
@@ -59,15 +61,14 @@ def train_ns(model,
              optimizer, 
              scheduler,
              device, config, args):
-    start_iter = config['train']['start_iter']
-    v = 1/ config['data']['Re']
-    t_duration = config['data']['t_duration']
+
     save_step = config['train']['save_step']
     eval_step = config['train']['eval_step']
 
     ic_weight = config['train']['ic_loss']
     f_weight = config['train']['f_loss']
     xy_weight = config['train']['xy_loss']
+
     # set up directory
     base_dir = os.path.join('exp', config['log']['logdir'])
     ckpt_dir = os.path.join(base_dir, 'ckpts')
@@ -75,9 +76,7 @@ def train_ns(model,
 
     # loss fn
     lploss = LpLoss(size_average=True)
-    
-    S = config['data']['pde_res'][0]
-    forcing = get_forcing(S).to(device)
+
     # set up wandb
     if wandb and args.log:
         os.environ['WANDB_MODE'] = config['log']['wandb_mode']
@@ -86,10 +85,9 @@ def train_ns(model,
                          config=config,
                          reinit=True,
                          )
-    
-    pbar = range(start_iter, config['train']['num_iter'])
-    if args.tqdm:
-        pbar = tqdm(pbar, dynamic_ncols=True, smoothing=0.2)
+
+    pbar = range(config['train']['num_iter'])
+    pbar = tqdm(pbar, dynamic_ncols=True, smoothing=0.2)
 
     u_loader = sample_data(train_u_loader)
     a_loader = sample_data(train_a_loader)
@@ -100,26 +98,29 @@ def train_ns(model,
         optimizer.zero_grad()
         # data loss
         if xy_weight > 0:
-            u, a_in = next(u_loader)
-            u = u.to(device)
+            a_in, u = next(u_loader)
             a_in = a_in.to(device)
+            u = u.to(device)
             out = model(a_in)
             data_loss = lploss(out, u)
         else:
             data_loss = torch.zeros(1, device=device)
 
-        if f_weight != 0.0:
-            # pde loss
-            a = next(a_loader)
-            a = a.to(device)
-            out = model(a)
-            
-            u0 = a[:, :, :, 0, -1]
-            loss_ic, loss_f = PINO_loss3d(out, u0, forcing, v, t_duration)
+        # pde loss
+        if f_weight > 0:
+            a_in, u0, force, particles = next(a_loader)
+            a_in = a_in.to(device)
+            u0 = u0.to(device)
+            force = force.to(device)
+            particles = particles.to(device)
+            out = model(a_in)
+            ic_loss, f_loss = PINO_IncomNS2D_loss(out, u0, force, particles)
 
         else:
-            loss_ic = loss_f = 0.0
-        loss = data_loss * xy_weight + loss_f * f_weight + loss_ic * ic_weight
+            f_loss = torch.zeros(1, device=device)
+            ic_loss = torch.zeros(1, device=device)
+
+        loss = data_loss * xy_weight + f_loss * f_weight + ic_loss * ic_weight
 
         loss.backward()
         optimizer.step()
@@ -127,20 +128,17 @@ def train_ns(model,
 
         log_dict['train loss'] = loss.item()
         log_dict['data'] = data_loss.item()
-        log_dict['ic'] = loss_ic.item()
-        log_dict['pde'] = loss_f.item()
+        log_dict['ic'] = ic_loss.item()
+        log_dict['pde'] = f_loss.item()
 
         if e % eval_step == 0:
-            eval_err, std_err = eval_ns(model, val_loader, lploss, device)
-            log_dict['val error'] = eval_err
-        
-        if args.tqdm:
-            logstr = dict2str(log_dict)
-            pbar.set_description(
-                (
-                    logstr
-                )
-            )
+            epoch_metrics_dict, epoch_metrics_ave_dict = eval_ns(model, val_loader, config['data']['val']['metrics_list'], device)
+            for metric_name in config['data']['val']['metrics_list']:
+                log_dict[f'VAL METRICS/{metric_name}'] = epoch_metrics_ave_dict[metric_name]
+
+        logstr = dict2str(log_dict)
+        pbar.set_description((logstr))
+
         if wandb and args.log:
             wandb.log(log_dict)
         if e % save_step == 0 and e > 0:
@@ -151,6 +149,40 @@ def train_ns(model,
     if wandb and args.log:
         run.finish()
 
+
+def PINO_IncomNS2D_loss(u, u0, force, particles, space_range=1, time_range=5):
+    batchsize, nx, ny, nt, _ = u.shape
+    assert _ == 2
+
+    dx = space_range / nx
+    dy = space_range / ny
+    dt = time_range / nt
+
+    lploss = LpLoss(size_average=True)
+
+    u0_pred = u[:, :, :, 0:1, :]
+    loss_ic = lploss(u0_pred, u0)
+
+    Du = FDM_NS_2D(v=u, p=particles, dx=dx, dy=dy, dt=dt)
+    force = force.repeat(1, 1, 1, nt, 1)
+
+    loss_f = lploss.rel(Du, force)
+
+    return loss_ic, loss_f
+
+
+def FDM_NS_2D(v, p, dx, dy, dt, rho=0.01, eta=0.01):
+
+    v_t = gradient_t(v, dt=dt)
+    grad_v = gradient_xy_vector(v, dx=dx, dy=dy)
+    v_grad_v = torch.einsum('bxyti,bxyti->bxyt', v, grad_v).unsqueeze(-1)
+
+    grad_p = gradient_xy_scalar(p, dx=dx, dy=dy)
+    lap_v = laplacian(v, dx=dx, dy=dy).unsqueeze(-1)
+
+    Du = rho * v_t + rho * v_grad_v + grad_p - eta * lap_v
+
+    return Du
 
 def subprocess(args):
     with open(args.config, 'r') as f:
@@ -166,13 +198,13 @@ def subprocess(args):
         torch.cuda.manual_seed_all(seed)
 
     # create model 
-    model = FNO3d(modes1=config['model']['modes1'],
-                  modes2=config['model']['modes2'],
-                  modes3=config['model']['modes3'],
-                  fc_dim=config['model']['fc_dim'],
-                  layers=config['model']['layers'], 
-                  act=config['model']['act'], 
-                  pad_ratio=config['model']['pad_ratio']).to(device)
+    model = FNO3d_incomNS2D(modes1=config['model']['modes1'],
+                            modes2=config['model']['modes2'],
+                            modes3=config['model']['modes3'],
+                            fc_dim=config['model']['fc_dim'],
+                            layers=config['model']['layers'],
+                            act=config['model']['act'],
+                            pad_ratio=config['model']['pad_ratio']).to(device)
     num_params = count_params(model)
     config['num_params'] = num_params
     print(f'Number of parameters: {num_params}')
@@ -185,13 +217,7 @@ def subprocess(args):
     
     if args.test:
         batchsize = config['test']['batchsize']
-        testset = KFDataset(paths=config['data']['paths'], 
-                            raw_res=config['data']['raw_res'],
-                            data_res=config['test']['data_res'], 
-                            pde_res=config['test']['data_res'], 
-                            n_samples=config['data']['n_test_samples'], 
-                            offset=config['data']['testoffset'], 
-                            t_duration=config['data']['t_duration'])
+        testset = IncompressibleNavierStokes2DDataset(dataset_params=config['data'], split='test')
         testloader = DataLoader(testset, batch_size=batchsize, num_workers=4)
         criterion = LpLoss()
         test_err, std_err = eval_ns(model, testloader, criterion, device)
@@ -199,32 +225,17 @@ def subprocess(args):
     else:
         # training set
         batchsize = config['train']['batchsize']
-        u_set = KFDataset(paths=config['data']['paths'], 
-                          raw_res=config['data']['raw_res'],
-                          data_res=config['data']['data_res'], 
-                          pde_res=config['data']['data_res'], 
-                          n_samples=config['data']['n_data_samples'], 
-                          offset=config['data']['offset'], 
-                          t_duration=config['data']['t_duration'])
+        u_set = IncompressibleNavierStokes2DDataset(dataset_params=config['data'], split='train')
         u_loader = DataLoader(u_set, batch_size=batchsize, num_workers=4, shuffle=True)
 
-        a_set = KFaDataset(paths=config['data']['paths'], 
-                           raw_res=config['data']['raw_res'], 
-                           pde_res=config['data']['pde_res'], 
-                           n_samples=config['data']['n_a_samples'],
-                           offset=config['data']['a_offset'], 
-                           t_duration=config['data']['t_duration'])
+        a_set = IncompressibleNavierStokes2DDataseta(dataset_params=config['data'], split='train')
         a_loader = DataLoader(a_set, batch_size=batchsize, num_workers=4, shuffle=True)
+
         # val set
-        valset = KFDataset(paths=config['data']['paths'], 
-                           raw_res=config['data']['raw_res'],
-                           data_res=config['test']['data_res'], 
-                           pde_res=config['test']['data_res'], 
-                           n_samples=config['data']['n_test_samples'], 
-                           offset=config['data']['testoffset'], 
-                           t_duration=config['data']['t_duration'])
+        valset = IncompressibleNavierStokes2DDataset(dataset_params=config['data'], split='val')
         val_loader = DataLoader(valset, batch_size=batchsize, num_workers=4)
-        print(f'Train set: {len(u_set)}; Test set: {len(valset)}; IC set: {len(a_set)}')
+
+        print(f'Train set: {len(u_set)}; Test set: {len(valset)}.')
         optimizer = Adam(model.parameters(), lr=config['train']['base_lr'])
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, 
                                                          milestones=config['train']['milestones'], 
@@ -233,7 +244,6 @@ def subprocess(args):
             ckpt = torch.load(ckpt_path)
             optimizer.load_state_dict(ckpt['optim'])
             scheduler.load_state_dict(ckpt['scheduler'])
-            config['train']['start_iter'] = scheduler.last_epoch
 
         train_ns(model, 
                  u_loader,
@@ -243,6 +253,7 @@ def subprocess(args):
                  scheduler,
                  device, 
                  config, args)
+
     print('Done!')
         
         
@@ -251,13 +262,12 @@ if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True
     # parse options
     parser = ArgumentParser(description='Basic paser')
-    parser.add_argument('--config', type=str, help='Path to the configuration file')
+    parser.add_argument('--config', type=str, default='configs/pino/PINO-IncomNS2D-PDEPbence-debug.yaml', help='Path to the configuration file')
     parser.add_argument('--log', action='store_true', help='Turn on the wandb')
-    parser.add_argument('--seed', type=int, default=None)
+    parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--ckpt', type=str, default=None)
     parser.add_argument('--test', action='store_true', help='Test')
-    parser.add_argument('--tqdm', action='store_true', help='Turn on the tqdm')
-    parser.add_argument('--device', default='cuda:0')
+    parser.add_argument('--device', default='cuda:3')
 
     args = parser.parse_args()
     if args.seed is None:

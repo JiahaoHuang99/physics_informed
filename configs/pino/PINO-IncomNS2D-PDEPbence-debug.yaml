@@ -1,0 +1,62 @@
+data:
+  train:
+    name: 'IncomNS2D-PDEBench'
+    dataset_path: '/media/ssd/data_temp/PDE/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/train'
+    n_all_samples: 16
+    reduced_resolution: 8
+    reduced_resolution_t: 20
+    real_space_range: [0, 1]
+    real_time_range: [0, 5]
+    in_seq: 1
+    out_seq: 49
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+  val:
+    name: 'DarcyFlow-PDEBench'
+    dataset_path: '/media/ssd/data_temp/PDE/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/test'
+    n_all_samples: 4
+    reduced_resolution: 8
+    reduced_resolution_t: 20
+    real_space_range: [0, 1]
+    real_time_range: [0, 5]
+    in_seq: 1
+    out_seq: 49
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+  test:
+    name: 'DarcyFlow-PDEBench'
+    dataset_path: '/media/ssd/data_temp/PDE/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/test'
+    n_all_samples: 4
+    reduced_resolution: 8
+    reduced_resolution_t: 20
+    real_space_range: [0, 1]
+    real_time_range: [0, 5]
+    in_seq: 1
+    out_seq: 49
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+
+model:
+  layers: [64, 64, 64, 64, 64]
+  modes1: [12, 12, 12, 12]
+  modes2: [12, 12, 12, 12]
+  modes3: [12, 12, 12, 12]
+  fc_dim: 128
+  act: gelu
+  pad_ratio: [0.0, 0.125]
+
+train:
+  batchsize: 2
+  num_iter: 200_001
+  milestones: [20_000, 60_000, 120_000]
+  base_lr: 0.001
+  scheduler_gamma: 0.5
+#  ic_loss: 0.0
+#  f_loss: 0.0
+  ic_loss: 10.0
+  f_loss: 1.0
+  xy_loss: 10.0
+  save_step: 10
+  eval_step: 1
+
+log:
+  logdir: PINO-IncomNS2D-PDEBench-debug
+  entity: jiahaohuang
+  project: PINO-NS

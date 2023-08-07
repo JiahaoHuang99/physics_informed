@@ -1,21 +1,13 @@
 import os
-import dgl
-import time
 import numpy as np
-import sklearn
-import hashlib
-import networkx as nx
-from math import ceil
-from scipy import sparse as sp
-from tqdm import tqdm
 import torch
 from torch.utils.data import Dataset
 from glob import glob
 from einops import rearrange, repeat
+from utils.util_mesh import SquareMeshGenerator
 
-from utils.util_mesh import RandomMeshGenerator, SquareMeshGenerator
 
-
+# Output [a, grid], u
 class DarcyFlowDataset(Dataset):
     """
     Dataset: Darcy Flow Dataset (PDE Bench)
@@ -75,6 +67,7 @@ class DarcyFlowDataset(Dataset):
 
         self.grid = self.meshgenerator.get_grid()  # (n_sample, 2)
         self.mesh = rearrange(self.grid, '(x y) c -> x y c', x=self.res_grid, y=self.res_grid)
+        self.S = self.res_grid
 
     def _prepare(self):
 
@@ -123,6 +116,7 @@ class DarcyFlowDataset(Dataset):
         return torch.cat([self.a_sampled.unsqueeze(2), self.mesh], dim=2), self.u_sampled
 
 
+# Output [a, grid]
 class DarcyFlowDatasetIC(Dataset):
     """
     Dataset: Darcy Flow Dataset (PDE Bench)
@@ -146,7 +140,7 @@ class DarcyFlowDatasetIC(Dataset):
         self.n_all_samples = dataset_params['n_all_samples']
 
         # resolution and domain range configuration
-        self.reduced_resolution = dataset_params['reduced_resolution']
+        self.reduced_resolution = dataset_params['reduced_resolution_pde'] if 'reduced_resolution_pde' in dataset_params else dataset_params['reduced_resolution']
 
         # task specific parameters
         self.beta = dataset_params['beta']
@@ -182,6 +176,7 @@ class DarcyFlowDatasetIC(Dataset):
 
         self.grid = self.meshgenerator.get_grid()  # (n_sample, 2)
         self.mesh = rearrange(self.grid, '(x y) c -> x y c', x=self.res_grid, y=self.res_grid)
+        self.S = self.res_grid
 
     def _prepare(self):
 
@@ -230,6 +225,7 @@ class DarcyFlowDatasetIC(Dataset):
         return torch.cat([self.a_sampled.unsqueeze(2), self.mesh], dim=2)
 
 
+# Output a, u
 class DarcyFlowDatasetBaseline(Dataset):
     """
     Dataset: Darcy Flow Dataset (PDE Bench)

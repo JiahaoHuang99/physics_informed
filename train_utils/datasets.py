@@ -333,12 +333,12 @@ class KFDataset(Dataset):
         
         a_sub_x = self.raw_res[0] // self.pde_res[0]
         # load data
-        data = raw_data[self.offset: self.offset + self.n_samples, ::sub_t, ::sub_x, ::sub_x]
+        data = raw_data[self.offset: self.offset + self.n_samples, ::sub_t, ::sub_x, ::sub_x]  # downsampling (300, 513, 256, 256) --> (10, 257, 64, 64)
         # divide data
-        if self.t_duration != 0.:
-            end_t = self.raw_res[2] - 1
-            K = int(1/self.t_duration)
-            step = end_t // K
+        if self.t_duration != 0.:  # 0.125
+            end_t = self.raw_res[2] - 1  # 512
+            K = int(1/self.t_duration)  # 8
+            step = end_t // K  # 64
             data = self.partition(data)
             a_data = raw_data[self.offset: self.offset + self.n_samples, 0:end_t:step, ::a_sub_x, ::a_sub_x]
             a_data = a_data.reshape(self.n_samples * K, 1, self.pde_res[0], self.pde_res[1])    # 2N x 1 x S x S
@@ -353,7 +353,7 @@ class KFDataset(Dataset):
         S = self.pde_res[1]
         
         a_data = a_data[:, :, :, :, None]   # N x S x S x 1 x 1
-        gridx, gridy, gridt = get_grid3d(S, self.T)
+        gridx, gridy, gridt = get_grid3d(S, self.T)  # S: 64, T: 33 -->
         self.grid = torch.cat((gridx[0], gridy[0], gridt[0]), dim=-1)   # S x S x T x 3
         self.a_data = a_data
 
@@ -365,14 +365,14 @@ class KFDataset(Dataset):
         Returns:
             output: int(1/t_duration) *N x (T//2 + 1) x 128 x 128
         '''
-        N, T, S = data.shape[:3]
-        K = int(1 / self.t_duration)
+        N, T, S = data.shape[:3]  # N: 10, T: 257, S: 64
+        K = int(1 / self.t_duration)  # K: 8
         new_data = np.zeros((K * N, T // K + 1, S, S))
-        step = T // K
+        step = T // K  # step 32
         for i in range(N):
             for j in range(K):
                 new_data[i * K + j] = data[i, j * step: (j+1) * step + 1]
-        return new_data
+        return new_data  # 80, 33, 64, 64
 
 
     def __getitem__(self, idx):

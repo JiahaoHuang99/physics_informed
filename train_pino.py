@@ -141,7 +141,7 @@ def train_ns(model,
 def subprocess(args):
     with open(args.config, 'r') as f:
         config = yaml.load(f, yaml.FullLoader)
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
 
     # set random seed
     config['seed'] = args.seed
@@ -234,12 +234,13 @@ if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True
     # parse options
     parser = ArgumentParser(description='Basic paser')
-    parser.add_argument('--config', type=str, help='Path to the configuration file')
+    parser.add_argument('--config', type=str, default='configs/pino/Re500-1_8-800-PINO-s.yaml', help='Path to the configuration file')
     parser.add_argument('--log', action='store_true', help='Turn on the wandb')
     parser.add_argument('--seed', type=int, default=None)
     parser.add_argument('--ckpt', type=str, default=None)
     parser.add_argument('--test', action='store_true', help='Test')
     parser.add_argument('--tqdm', action='store_true', help='Turn on the tqdm')
+    parser.add_argument('--device', default='cuda:3')
     args = parser.parse_args()
     if args.seed is None:
         args.seed = random.randint(0, 100000)
