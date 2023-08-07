@@ -4,33 +4,33 @@ data:
     dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/train'
     n_all_samples: 500
     reduced_resolution: 8
-    reduced_resolution_t: 20
+    reduced_resolution_t: 50
     real_space_range: [0, 1]
     real_time_range: [0, 5]
     in_seq: 1
-    out_seq: 49
+    out_seq: 19
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   val:
     name: 'IncomNS2D-PDEBench'
     dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/test'
     n_all_samples: 100
     reduced_resolution: 8
-    reduced_resolution_t: 20
+    reduced_resolution_t: 50
     real_space_range: [0, 1]
     real_time_range: [0, 5]
     in_seq: 1
-    out_seq: 49
+    out_seq: 19
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   test:
     name: 'IncomNS2D-PDEBench'
     dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/test'
     n_all_samples: 100
     reduced_resolution: 8
-    reduced_resolution_t: 20
+    reduced_resolution_t: 50
     real_space_range: [0, 1]
     real_time_range: [0, 5]
     in_seq: 1
-    out_seq: 49
+    out_seq: 19
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
 
 model:
@@ -55,8 +55,8 @@ train:
   eval_step: 1
 
 log:
-  logdir: /home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/IncomNS2D/PINO/PINO-IncomNS2D-PDEBench-Dx8-Tx20
+  logdir: /home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/IncomNS2D/PINO/PINO-IncomNS2D-PDEBench-Dx8-Tx50
   entity: jiahaohuang
   project: PINO-NS
   wandb_mode: online
-  name: PINO-IncomNS2D-PDEBench-Dx8-Tx20
+  name: PINO-IncomNS2D-PDEBench-Dx8-Tx50

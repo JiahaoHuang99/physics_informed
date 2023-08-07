@@ -1,7 +1,7 @@
 data:
   train:
     name: 'IncomNS2D-PDEBench'
-    dataset_path: '/media/ssd/data_temp/PDE/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/train'
+    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/train'
     n_all_samples: 500
     reduced_resolution: 8
     reduced_resolution_t: 20
@@ -11,8 +11,8 @@ data:
     out_seq: 49
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   val:
-    name: 'DarcyFlow-PDEBench'
-    dataset_path: '/media/ssd/data_temp/PDE/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/test'
+    name: 'IncomNS2D-PDEBench'
+    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/test'
     n_all_samples: 100
     reduced_resolution: 8
     reduced_resolution_t: 20
@@ -22,8 +22,8 @@ data:
     out_seq: 49
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   test:
-    name: 'DarcyFlow-PDEBench'
-    dataset_path: '/media/ssd/data_temp/PDE/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/test'
+    name: 'IncomNS2D-PDEBench'
+    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/test'
     n_all_samples: 100
     reduced_resolution: 8
     reduced_resolution_t: 20
@@ -43,7 +43,7 @@ model:
   pad_ratio: [0.0, 0.125]
 
 train:
-  batchsize: 2
+  batchsize: 8
   num_iter: 200_001
   milestones: [20_000, 60_000, 120_000]
   base_lr: 0.001
@@ -55,6 +55,8 @@ train:
   eval_step: 1
 
 log:
-  logdir: PINO-IncomNS2D-PDEBench-Dx8-Tx20-D10
+  logdir: /home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/IncomNS2D/FNO/FNO-IncomNS2D-PDEBench-Dx8-Tx20
   entity: jiahaohuang
   project: PINO-NS
+  wandb_mode: online
+  name: FNO-IncomNS2D-PDEBench-Dx8-Tx20

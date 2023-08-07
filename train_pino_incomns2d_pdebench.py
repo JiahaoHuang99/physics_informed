@@ -84,7 +84,7 @@ def train_ns(model,
                          entity=config['log']['entity'],
                          config=config,
                          reinit=True,
-                         )
+                         name=config['log']['name'])
 
     pbar = range(config['train']['num_iter'])
     pbar = tqdm(pbar, dynamic_ncols=True, smoothing=0.2)

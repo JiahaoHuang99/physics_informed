@@ -11,7 +11,7 @@ data:
     out_seq: 49
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   val:
-    name: 'DarcyFlow-PDEBench'
+    name: 'IncomNS2D-PDEBench'
     dataset_path: '/media/ssd/data_temp/PDE/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/test'
     n_all_samples: 4
     reduced_resolution: 8
@@ -22,7 +22,7 @@ data:
     out_seq: 49
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   test:
-    name: 'DarcyFlow-PDEBench'
+    name: 'IncomNS2D-PDEBench'
     dataset_path: '/media/ssd/data_temp/PDE/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/test'
     n_all_samples: 4
     reduced_resolution: 8
