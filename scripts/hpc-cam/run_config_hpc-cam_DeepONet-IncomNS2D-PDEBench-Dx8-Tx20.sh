@@ -10,7 +10,7 @@
 #SBATCH --time=12:00:00
 
 # set name of job
-#SBATCH --job-name=FNO-IncomNS2D-PDEBench-Dx8-Tx20
+#SBATCH --job-name=DeepONet-IncomNS2D-PDEBench-Dx8-Tx20
 
 # set the number of nodes
 #SBATCH --nodes=1
@@ -31,10 +31,10 @@
 #SBATCH --mail-user=huangjiahao0711@gmail.com
 
 # output log
-#SBATCH -o /home/jh2446/physics_graph_transformer/physics_informed/server/HPC-CAM/log/FNO-IncomNS2D-PDEBench-Dx8-Tx20.o
+#SBATCH -o /home/jh2446/physics_graph_transformer/physics_informed/server/HPC-CAM/log/DeepONet-IncomNS2D-PDEBench-Dx8-Tx20.o
 
 # error log
-#SBATCH -e /home/jh2446/physics_graph_transformer/physics_informed/server/HPC-CAM/log/FNO-IncomNS2D-PDEBench-Dx8-Tx20.e
+#SBATCH -e /home/jh2446/physics_graph_transformer/physics_informed/server/HPC-CAM/log/DeepONet-IncomNS2D-PDEBench-Dx8-Tx20.e
 
 . /etc/profile.d/modules.sh
 
@@ -53,6 +53,6 @@ export WANDB_API_KEY=6bd3bf367138dfcda335e6c5a14e7741a1ea365b
 
 cd ${project_path}
 
-python ${project_path}/train_pino_incomns2d_pdebench.py  --config ${project_path}/configs/fno/FNO-IncomNS2D-PDEBench-Dx8-Tx20.yaml --log --device cuda:0
+python ${project_path}/train_deeponet_incomns2d_pdebench.py  --config_path ${project_path}/configs/deeponet/DeepONet-IncomNS2D-PDEBench-Dx8-Tx20.yaml --mode train --device cuda:0
 
 conda deactivate

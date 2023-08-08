@@ -6,11 +6,11 @@ from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
 
-from baselines.model import DeepONetCP
+from baselines.model import DeepONetNS
 from train_utils.losses import LpLoss
 from train_utils.utils import save_checkpoint
-# from baselines.data import DarcyFlow
-from data_pde.dataset_darcy_flow_pdebench_d2 import DarcyFlowDatasetBaseline as DarcyFlow
+from baselines.data import DeepONetCPNS
+from data_pde.dataset_incompressible_navier_stokes_2d_pdebench_d2 import IncompressibleNavierStokes2DDatasetBaseline
 import utils.util_metrics
 import numpy as np
 
@@ -21,11 +21,11 @@ except ImportError:
 
 
 @torch.no_grad()
-def eval_darcy_deeponet(model,
-                        grid,
-                        val_loader,
-                        metrics_list,
-                        device='cpu'):
+def eval_ns_deeponet(model,
+                     grid,
+                     val_loader,
+                     metrics_list,
+                     device='cpu'):
 
     model.eval()
 
@@ -33,10 +33,23 @@ def eval_darcy_deeponet(model,
     for metric_name in metrics_list:
         epoch_metrics_dict[metric_name] = []
     for x, y in val_loader:
-        x = x.to(device)  # initial condition, (batchsize, u0_dim)
-        y = y.to(device)  # ground truth, (batchsize, SxS)
-        pred = model(x, grid)
-        step_eval_dict = utils.util_metrics.eval_darcy(pred.unsqueeze(-1).unsqueeze(-1), y.unsqueeze(-1).unsqueeze(-1), metrics_list)
+        bs, S, _, T, __ = y.shape
+
+        x = x.to(device)  # initial condition, (batchsize, S, S, 1, 5)
+        y = y.to(device)  # ground truth, (batchsize, S, S, T, 5)
+
+        grid = grid.to(device)  # grid value, (S*S*T, 3)
+
+        x = x.reshape(bs, -1, 5)  # (batchsize, S*S, 5)
+
+        pred = model(x, grid)  # (batchsize, S*S*T, 2)
+        pred = pred.reshape(bs, S, S, T, 2)  # (batchsize, S, S, T, 2)
+
+        # remove the first time point
+        pred = pred[:, :, :, 1:, :]
+        y = y[:, :, :, 1:, :]
+
+        step_eval_dict = utils.util_metrics.eval_darcy(pred, y, metrics_list)
         for metric_name in metrics_list:
             epoch_metrics_dict[metric_name].append(step_eval_dict[metric_name])
 
@@ -47,24 +60,31 @@ def eval_darcy_deeponet(model,
     return epoch_metrics_dict, epoch_metrics_ave_dict
 
 
-def train_deeponet_darcy_pdebench(config, device='cuda:0'):
+def train_deeponet_incomns2d_pdebench(config, device='cuda:0'):
     '''
-    Train DeepONet for Darcy Flow (PDEBench)
+    Train DeepONet for Incompressible Navier Stokes 2D (PDEBench)
     '''
     # device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     data_config = config['data']
     batch_size = config['train']['batchsize']
     eval_epoch = config['train']['eval_epoch']
+    save_epoch = config['train']['save_epoch']
 
-    dataset = DarcyFlow(dataset_params=data_config, split='train')
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    dataset = IncompressibleNavierStokes2DDatasetBaseline(dataset_params=data_config, split='train')
+    dataloader = DataLoader(dataset,
+                            batch_size=batch_size,
+                            drop_last=True,
+                            shuffle=True)
 
-    val_dataset = DarcyFlow(dataset_params=data_config, split='val')
-    val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+    val_dataset = IncompressibleNavierStokes2DDatasetBaseline(dataset_params=data_config, split='val')
+    val_dataloader = DataLoader(val_dataset,
+                                batch_size=batch_size,
+                                drop_last=False,
+                                shuffle=False)
 
     u0_dim = dataset.S ** 2
-    model = DeepONetCP(branch_layer=[u0_dim] + config['model']['branch_layers'],
-                       trunk_layer=[2] + config['model']['trunk_layers']).to(device)
+    model = DeepONetNS(branch_layer=[u0_dim * 5] + config['model']['branch_layers'],
+                     trunk_layer=[3] + config['model']['trunk_layers']).to(device)
     optimizer = Adam(model.parameters(), lr=config['train']['base_lr'])
     scheduler = MultiStepLR(optimizer,
                             milestones=config['train']['milestones'],
@@ -83,16 +103,26 @@ def train_deeponet_darcy_pdebench(config, device='cuda:0'):
     pbar = tqdm(pbar, dynamic_ncols=True, smoothing=0.1)
     myloss = LpLoss(size_average=True)
     model.train()
-    grid = dataset.mesh
-    grid = grid.reshape(-1, 2).to(device)  # grid value, (SxS, 2)
+
     for e in pbar:
         log_dict = {}
         train_loss = 0.0
         for x, y in dataloader:
-            x = x.to(device)  # initial condition, (batchsize, u0_dim)
-            y = y.to(device)  # ground truth, (batchsize, SxS)
+            bs, S, _, T, __ = y.shape
+            assert S == _
+            assert __ == 2
+            assert bs == batch_size
 
-            pred = model(x, grid)
+            x = x.to(device)  # initial condition, (batchsize, S, S, 1, 5)
+            y = y.to(device)  # ground truth, (batchsize, S, S, T, 5)
+            grid = dataset.xyt
+            grid = grid.to(device)  # grid value, (S*S*T, 3)
+
+            x = x.reshape(bs, -1, 5)  # (batchsize, S*S, 5)
+
+            pred = model(x, grid)  # (batchsize, S*S*T, 2)
+            pred = pred.reshape(bs, S, S, T, 2)  # (batchsize, S, S, T, 2)
+
             loss = myloss(pred, y)
 
             model.zero_grad()
@@ -112,19 +142,19 @@ def train_deeponet_darcy_pdebench(config, device='cuda:0'):
                 f'Epoch: {e}; Averaged train loss: {train_loss:.5f}; '
             )
         )
-        if e % 1000 == 0:
+        if e % save_epoch == 0:
             print(f'Epoch: {e}, averaged train loss: {train_loss:.5f}')
             save_checkpoint(config['train']['save_dir'],
                             config['train']['save_name'].replace('.pt', f'_{e}.pt'),
                             model, optimizer)
 
         if e % eval_epoch == 0:
-            epoch_metrics_dict, epoch_metrics_ave_dict = eval_darcy_deeponet(model,
-                                                                             grid,
-                                                                             val_dataloader,
-                                                                             config['data']['val']['metrics_list'],
-                                                                             device=device
-                                                                             )
+            epoch_metrics_dict, epoch_metrics_ave_dict = eval_ns_deeponet(model,
+                                                                          grid,
+                                                                          val_dataloader,
+                                                                          config['data']['val']['metrics_list'],
+                                                                          device=device
+                                                                          )
 
             for metric_name in config['data']['val']['metrics_list']:
                 log_dict[f'VAL METRICS/{metric_name}'] = epoch_metrics_ave_dict[metric_name]

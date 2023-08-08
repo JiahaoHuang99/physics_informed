@@ -1,4 +1,5 @@
 data:
+  name: 'IncomNS2D-PDEBench'
   train:
     name: 'IncomNS2D-PDEBench'
     dataset_path: '/media/ssd/data_temp/PDE/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/train'
@@ -34,29 +35,24 @@ data:
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
 
 model:
-  layers: [64, 64, 64, 64, 64]
-  modes1: [12, 12, 12, 12]
-  modes2: [12, 12, 12, 12]
-  modes3: [12, 12, 12, 12]
-  fc_dim: 128
-  act: gelu
-  pad_ratio: [0.0, 0.125]
+  branch_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 100]
+  trunk_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
+  activation: tanh
 
 train:
-  batchsize: 4
-  num_iter: 200_001
-  milestones: [20_000, 60_000, 120_000]
+  batchsize: 2
+  epochs: 2000
+  milestones: [400, 800, 1200]
   base_lr: 0.001
   scheduler_gamma: 0.5
-  ic_loss: 10.0
-  f_loss: 1.0
-  xy_loss: 10.0
-  save_step: 10
-  eval_step: 1
+  save_dir: 'DeepONet-IncomNS2D-PDEBench-debug'
+  save_name: 'DeepONet-IncomNS2D-PDEBench-debug.pt'
+  save_epoch: 1
+  eval_epoch: 1
 
 log:
-  logdir: PINO-IncomNS2D-PDEBench-debug
+  logdir: DeepONet-IncomNS2D-PDEBench-debug
   entity: jiahaohuang
-  project: PINO-NS
+  project: DeepONet-NS
   wandb_mode: offline
-  name: PINO-IncomNS2D-PDEBench-debug
+  name: DeepONet-IncomNS2D-PDEBench-debug

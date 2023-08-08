@@ -19,6 +19,22 @@ class DeepONet(nn.Module):
         return torch.bmm(a.view(batchsize, 1, dim), b.view(batchsize, dim, 1))
 
 
+class DeepONetNS(nn.Module):
+    def __init__(self, branch_layer, trunk_layer):
+        super(DeepONetNS, self).__init__()
+        self.branch = DenseNet(branch_layer, nn.ReLU)
+        self.trunk = DenseNet(trunk_layer, nn.ReLU)
+
+    def forward(self, u0, grid):
+        batchsize = u0.shape[0]
+        u0 = u0.view(batchsize, -1)
+        a = self.branch(u0)
+        a = a.view(batchsize, -1, 2)
+        b = self.trunk(grid)
+
+        return torch.einsum('bic,ni->bnc', a, b)
+
+
 class DeepONetCP(nn.Module):
     def __init__(self, branch_layer, trunk_layer):
         super(DeepONetCP, self).__init__()
