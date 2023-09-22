@@ -2,7 +2,7 @@ data:
   train:
     name: 'IncomNS2D-PDEBench'
     dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/IncompressibleNavierStokes/IncompressibleNavierStokes2D/PDEBench/npz/train'
-    n_all_samples: 500
+    n_all_samples: 892
     reduced_resolution: 8
     reduced_resolution_t: 50
     real_space_range: [0, 1]

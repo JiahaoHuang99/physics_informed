@@ -38,6 +38,10 @@ def load_data(DATASET_NAME, dataset_params):
         raise NotImplementedError
         from data_pde.dataset_poisson_kaiserslautern import LoadPoissonDatasetDGL as dataset_class
 
+    # Reaction Diffusion Dataset
+    elif DATASET_NAME in ['DIFFUSION_REACTION_2D', 'DIFFUSION_REACTION_2D_PDEBench']:
+        from data_pde.dataset_diffusion_reaction_2d_pdebench_d2 import LoadDiffusionReaction2DDatasetDGL as dataset_class
+
     else:
         raise ValueError('Dataset {} not found'.format(DATASET_NAME))
 

@@ -7,7 +7,6 @@ from einops import rearrange, repeat
 from utils.util_mesh import SquareMeshGenerator
 
 
-# Output [a, grid], u
 class DarcyFlowDataset(Dataset):
     """
     Dataset: Darcy Flow Dataset (PDE Bench)
