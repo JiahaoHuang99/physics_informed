@@ -17,9 +17,9 @@ def get_grid3d(S, T, time_scale=1.0, device='cpu'):
     return gridx, gridy, gridt
 
 
-class DiffusionReaction2DDataset(Dataset):
+class ShallowWater2DDataset(Dataset):
     """
-    Dataset: Diffusion Reaction 2D Dataset
+    Dataset: Shallow Water 2D Dataset
     Source: https://doi.org/10.18419/darus-2986
     This is a folder dataset (preprocessed).
     Folder:
@@ -60,8 +60,8 @@ class DiffusionReaction2DDataset(Dataset):
         # load an example
         with np.load(self.data_paths[0]) as f:
             data = torch.from_numpy(f['data'][()])  # (res_t, res_x, res_y, 2)
-            u = data[:, :, :, 0:1]  # FIXME: check the order
-            v = data[:, :, :, 1:2]  # FIXME: check the order
+            u = data[:, :, :, 0:1]
+
             grid_t = torch.from_numpy(f['grid_t'][()])  # res_t = 101
             grid_x = torch.from_numpy(f['grid_x'][()])  # res_x = 128
             grid_y = torch.from_numpy(f['grid_y'][()])  # res_y = 128
@@ -93,31 +93,25 @@ class DiffusionReaction2DDataset(Dataset):
         # for one sample
         t = self.grid_t
         u = self.u
-        v = self.v
 
         # set the value & key position (encoder)
         u_sampled = u.clone()
-        v_sampled = v.clone()
 
         u_sampled = rearrange(u_sampled, 't x y a -> x y t a')
-        v_sampled = rearrange(v_sampled, 't x y a -> x y t a')
 
         # undersample on time and space
         u_sampled = u_sampled[::self.reduced_resolution, ::self.reduced_resolution, ::self.reduced_resolution_t, :]
-        v_sampled = v_sampled[::self.reduced_resolution, ::self.reduced_resolution, ::self.reduced_resolution_t, :]
         t_sampled = t[::self.reduced_resolution_t]
 
         self.u_sampled = u_sampled
-        self.v_sampled = v_sampled
 
 
     def _load_sample(self, data_path):
 
         # load data
         with np.load(data_path) as f:
-            self.data = torch.from_numpy(f['data'][()])  # (res_t, res_x, res_y, 2)
-            self.u = self.data[:, :, :, 0:1]  # FIXME: check the order
-            self.v = self.data[:, :, :, 1:2]  # FIXME: check the order
+            self.data = torch.from_numpy(f['data'][()])  # (res_t, res_x, res_y, 1)
+            self.u = self.data[:, :, :, :]
             self.grid_t = torch.from_numpy(f['grid_t'][()])  # res_t = 101
             self.grid_x = torch.from_numpy(f['grid_x'][()])  # res_x = 128
             self.grid_y = torch.from_numpy(f['grid_y'][()])  # res_y = 128
@@ -135,23 +129,19 @@ class DiffusionReaction2DDataset(Dataset):
         self._load_sample(data_path)
 
         u_sampled_inseq = self.u_sampled[:, :, :self.in_seq, :]  # H, W, Tin, 1
-        v_sampled_inseq = self.v_sampled[:, :, :self.in_seq, :]  # H, W, Tin, 1
 
         a = torch.cat((u_sampled_inseq.repeat(1, 1, self.res_time, 1),
-                       v_sampled_inseq.repeat(1, 1, self.res_time, 1),
                        self.grid_3d),
-                      dim=-1)  # (H, W, T, 5)
+                      dim=-1)  # (H, W, T, 4)
 
-        u = torch.cat((self.u_sampled,
-                       self.v_sampled),
-                      dim=-1)  # (H, W, T, 2)
+        u = self.u_sampled  # (H, W, T, 1)
 
         return a, u
 
 
-class DiffusionReaction2DDatasetBaseline(Dataset):
+class ShallowWater2DDatasetBaseline(Dataset):
     """
-    Dataset: Diffusion Reaction 2D Dataset
+    Dataset: Shallow Water 2D Dataset
     Source: https://doi.org/10.18419/darus-2986
     This is a folder dataset (preprocessed).
     Folder:
@@ -159,6 +149,7 @@ class DiffusionReaction2DDatasetBaseline(Dataset):
         - Sample (x1)
 
     """
+
     def __init__(self, dataset_params, split):
         # load configuration
         self.split = split  # train, val, test
@@ -192,8 +183,8 @@ class DiffusionReaction2DDatasetBaseline(Dataset):
         # load an example
         with np.load(self.data_paths[0]) as f:
             data = torch.from_numpy(f['data'][()])  # (res_t, res_x, res_y, 2)
-            u = data[:, :, :, 0:1]  # FIXME: check the order
-            v = data[:, :, :, 1:2]  # FIXME: check the order
+            u = data[:, :, :, 0:1]
+
             grid_t = torch.from_numpy(f['grid_t'][()])  # res_t = 101
             grid_x = torch.from_numpy(f['grid_x'][()])  # res_x = 128
             grid_y = torch.from_numpy(f['grid_y'][()])  # res_y = 128
@@ -231,31 +222,24 @@ class DiffusionReaction2DDatasetBaseline(Dataset):
         # for one sample
         t = self.grid_t
         u = self.u
-        v = self.v
 
         # set the value & key position (encoder)
         u_sampled = u.clone()
-        v_sampled = v.clone()
 
         u_sampled = rearrange(u_sampled, 't x y a -> x y t a')
-        v_sampled = rearrange(v_sampled, 't x y a -> x y t a')
 
         # undersample on time and space
         u_sampled = u_sampled[::self.reduced_resolution, ::self.reduced_resolution, ::self.reduced_resolution_t, :]
-        v_sampled = v_sampled[::self.reduced_resolution, ::self.reduced_resolution, ::self.reduced_resolution_t, :]
         t_sampled = t[::self.reduced_resolution_t]
 
         self.u_sampled = u_sampled
-        self.v_sampled = v_sampled
-
 
     def _load_sample(self, data_path):
 
         # load data
         with np.load(data_path) as f:
-            self.data = torch.from_numpy(f['data'][()])  # (res_t, res_x, res_y, 2)
-            self.u = self.data[:, :, :, 0:1]  # FIXME: check the order
-            self.v = self.data[:, :, :, 1:2]  # FIXME: check the order
+            self.data = torch.from_numpy(f['data'][()])  # (res_t, res_x, res_y, 1)
+            self.u = self.data[:, :, :, :]
             self.grid_t = torch.from_numpy(f['grid_t'][()])  # res_t = 101
             self.grid_x = torch.from_numpy(f['grid_x'][()])  # res_x = 128
             self.grid_y = torch.from_numpy(f['grid_y'][()])  # res_y = 128
@@ -273,15 +257,10 @@ class DiffusionReaction2DDatasetBaseline(Dataset):
         self._load_sample(data_path)
 
         u_sampled_inseq = self.u_sampled[:, :, :self.in_seq, :]  # H, W, Tin, 1
-        v_sampled_inseq = self.v_sampled[:, :, :self.in_seq, :]  # H, W, Tin, 1
 
-        a = torch.cat((u_sampled_inseq,
-                       v_sampled_inseq),
-                      dim=-1)  # (H, W, Tin, 2)
+        a = u_sampled_inseq  # (H, W, Tin, 1)
 
-        u = torch.cat((self.u_sampled,
-                       self.v_sampled),
-                      dim=-1)  # (H, W, T, 2)
+        u = self.u_sampled  # (H, W, T, 1)
 
         return a, u
 

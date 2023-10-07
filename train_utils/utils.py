@@ -153,8 +153,11 @@ def count_params(net):
     return count
 
 
-def save_checkpoint(path, name, model, optimizer=None):
-    ckpt_dir = 'checkpoints/%s/' % path
+def save_checkpoint(path, name, model, optimizer=None, relative_path=True):
+    if relative_path:
+        ckpt_dir = 'checkpoints/%s/' % path
+    else:
+        ckpt_dir = path
     if not os.path.exists(ckpt_dir):
         os.makedirs(ckpt_dir)
     try:

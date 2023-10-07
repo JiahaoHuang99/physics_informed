@@ -1,0 +1,58 @@
+data:
+  name: 'CFD2Db-PDEBench'
+  train:
+    name: 'CFD2Db-PDEBench'
+    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/CompressibleNavierStokes/CompressibleNavierStokes2D/PDEBench/npz/2D_CFD_Rand_M0.1_Eta0.01_Zeta0.01_periodic_128_Train/train'
+    n_all_samples: 9000
+    reduced_resolution: 2
+    reduced_resolution_t: 1
+    real_space_range: [0, 1]
+    real_time_range: [0, 1]
+    in_seq: 1
+    out_seq: 20
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+  val:
+    name: 'CFD2Db-PDEBench'
+    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/CompressibleNavierStokes/CompressibleNavierStokes2D/PDEBench/npz/2D_CFD_Rand_M0.1_Eta0.01_Zeta0.01_periodic_128_Train/test'
+    n_all_samples: 1000
+    reduced_resolution: 2
+    reduced_resolution_t: 1
+    real_space_range: [0, 1]
+    real_time_range: [0, 1]
+    in_seq: 1
+    out_seq: 20
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+  test:
+    name: 'CFD2Db-PDEBench'
+    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/CompressibleNavierStokes/CompressibleNavierStokes2D/PDEBench/npz/2D_CFD_Rand_M0.1_Eta0.01_Zeta0.01_periodic_128_Train/test'
+    n_all_samples: 1000
+    reduced_resolution: 2
+    reduced_resolution_t: 1
+    real_space_range: [0, 1]
+    real_time_range: [0, 1]
+    in_seq: 1
+    out_seq: 20
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+
+model:
+  branch_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 100]
+  trunk_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
+  activation: tanh
+
+train:
+  batchsize: 8
+  epochs: 2000
+  milestones: [400, 800, 1200]
+  base_lr: 0.001
+  scheduler_gamma: 0.5
+  save_dir: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/CFD2D/DeepONet-CFD2Db-PDEBench-Dx2-Tx1'
+  save_name: 'DeepONet-CFD2Db-PDEBench-Dx2-Tx1.pt'
+  save_epoch: 100
+  eval_epoch: 1
+
+log:
+  logdir: /home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/CFD2D/DeepONet-CFD2Db-PDEBench-Dx2-Tx1
+  entity: jiahaohuang
+  project: PhysGTN-CFD
+  wandb_mode: online
+  name: DeepONet-CFD2Db-PDEBench-Dx2-Tx1

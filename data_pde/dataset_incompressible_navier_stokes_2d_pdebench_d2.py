@@ -159,7 +159,7 @@ class IncompressibleNavierStokes2DDataset(Dataset):
                        self.grid_3d),
                       dim=-1)  # (H, W, T, 8)
 
-        u = self.velocity_sampled
+        u = self.velocity_sampled  # (H, W, T, 2)
 
         return a, u
 
@@ -456,7 +456,7 @@ class IncompressibleNavierStokes2DDatasetBaseline(Dataset):
         a = torch.cat((velocity_sampled_inseq,
                        particles_sampled_inseq,
                        force_sampled),
-                      dim=-1)  # (H, W, 1, 5)
+                      dim=-1)  # (H, W, Tin, 5)
 
         u = self.velocity_sampled  # (H, W, T, 2)
 

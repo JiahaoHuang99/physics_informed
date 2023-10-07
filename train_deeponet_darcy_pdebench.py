@@ -1,7 +1,5 @@
 import yaml
 from argparse import ArgumentParser
-from baselines.train_ns import train_deeponet_cp
-from baselines.test import test_deeponet_ns, test_deeponet_darcy
 from baselines.train_darcy import train_deeponet_darcy
 from baselines.train_darcy_pdebench import train_deeponet_darcy_pdebench
 
@@ -25,15 +23,6 @@ if __name__ == '__main__':
             train_deeponet_darcy_pdebench(config, device=args.device)
         else:
             raise NotImplementedError
-            train_deeponet_cp(config)
     else:
-        print('Start testing DeepONet Cartesian Product')
-        if 'name' in config['data'] and config['data']['name'] == 'Darcy':
-            test_deeponet_darcy(config)
-        elif 'name' in config['data'] and config['data']['name'] == 'DarcyFlow-PDEBench':
-            raise NotImplementedError
-            test_deeponet_darcy(config)
-        else:
-            raise NotImplementedError
-            test_deeponet_ns(config)
+        raise NotImplementedError
     print('Done!')

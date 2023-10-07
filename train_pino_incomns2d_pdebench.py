@@ -182,7 +182,6 @@ def FDM_NS_2D(v, p, dx, dy, dt, rho=0.01, eta=0.01):
 
     Du = rho * v_t + rho * v_grad_v + grad_p - eta * lap_v
 
-    return Du
 
 def subprocess(args):
     with open(args.config, 'r') as f:

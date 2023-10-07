@@ -1,34 +1,34 @@
 data:
   train:
-    name: 'DR2D-PDEBench'
-    dataset_path: '/media/ssd/data_temp/PDE/data/DiffusionReaction/PDEBench/npz/train'
+    name: 'SW2D-PDEBench'
+    dataset_path: '/media/ssd/data_temp/PDE/data/ShallowWater/PDEBench/npz/train'
     n_all_samples: 10
     reduced_resolution: 4
     reduced_resolution_t: 10
-    real_space_range: [-1, 1]
-    real_time_range: [0, 5]
+    real_space_range: [-0.25, 0.25]
+    real_time_range: [0, 1]
     in_seq: 1
     out_seq: 50
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   val:
-    name: 'DR2D-PDEBench'
-    dataset_path: '/media/ssd/data_temp/PDE/data/DiffusionReaction/PDEBench/npz/test'
+    name: 'SW2D-PDEBench'
+    dataset_path: '/media/ssd/data_temp/PDE/data/ShallowWater/PDEBench/npz/test'
     n_all_samples: 10
     reduced_resolution: 4
     reduced_resolution_t: 10
-    real_space_range: [-1, 1]
-    real_time_range: [0, 5]
+    real_space_range: [-0.25, 0.25]
+    real_time_range: [0, 1]
     in_seq: 1
     out_seq: 50
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   test:
-    name: 'DR2D-PDEBench'
-    dataset_path: '/media/ssd/data_temp/PDE/data/DiffusionReaction/PDEBench/npz/test'
+    name: 'SW2D-PDEBench'
+    dataset_path: '/media/ssd/data_temp/PDE/data/ShallowWater/PDEBench/npz/test'
     n_all_samples: 10
     reduced_resolution: 4
     reduced_resolution_t: 10
-    real_space_range: [-1, 1]
-    real_time_range: [0, 5]
+    real_space_range: [-0.25, 0.25]
+    real_time_range: [0, 1]
     in_seq: 1
     out_seq: 50
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
@@ -41,8 +41,8 @@ model:
   fc_dim: 128
   act: gelu
   pad_ratio: [0.0, 0.125]
-  in_dim: 5
-  out_dim: 2
+  in_dim: 4
+  out_dim: 1
 
 train:
   batchsize: 4
@@ -57,8 +57,8 @@ train:
   eval_step: 1
 
 log:
-  logdir: FNO-DR2D-PDEBench-debug
+  logdir: FNO-SW2D-PDEBench-debug
   entity: jiahaohuang
-  project: PhysGTN-DR
+  project: PhysGTN-SW
   wandb_mode: offline
-  name: FNO-DR2D-PDEBench-debug
+  name: FNO-SW2D-PDEBench-debug

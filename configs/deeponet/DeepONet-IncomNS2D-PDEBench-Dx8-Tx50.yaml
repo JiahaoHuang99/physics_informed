@@ -51,7 +51,7 @@ train:
   eval_epoch: 1
 
 log:
-  logdir: /home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/IncomNS2D/DeepONet/DeepONet-IncomNS2D-PDEBench-Dx8-Tx50
+  logdir: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/IncomNS2D/DeepONet/DeepONet-IncomNS2D-PDEBench-Dx8-Tx50'
   entity: jiahaohuang
   project: DeepONet-NS
   wandb_mode: online

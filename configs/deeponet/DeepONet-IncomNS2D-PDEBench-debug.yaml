@@ -51,7 +51,7 @@ train:
   eval_epoch: 1
 
 log:
-  logdir: DeepONet-IncomNS2D-PDEBench-debug
+  logdir: 'DeepONet-IncomNS2D-PDEBench-debug'
   entity: jiahaohuang
   project: DeepONet-NS
   wandb_mode: offline

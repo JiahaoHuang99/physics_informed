@@ -10,7 +10,7 @@ from baselines.model import DeepONetNS
 from train_utils.losses import LpLoss
 from train_utils.utils import save_checkpoint
 from baselines.data import DeepONetCPNS
-from data_pde.dataset_incompressible_navier_stokes_2d_pdebench_d2 import IncompressibleNavierStokes2DDatasetBaseline
+from data_pde.dataset_compressible_navier_stokes_2d_pdebench_d2 import CompressibleNavierStokes2DDatasetBaseline
 import utils.util_metrics
 import numpy as np
 
@@ -35,21 +35,21 @@ def eval_ns_deeponet(model,
     for x, y in val_loader:
         bs, S, _, T, __ = y.shape
 
-        x = x.to(device)  # initial condition, (batchsize, S, S, 1, 5)
-        y = y.to(device)  # ground truth, (batchsize, S, S, T, 5)
+        x = x.to(device)  # initial condition, (batchsize, S, S, 1, 4)
+        y = y.to(device)  # ground truth, (batchsize, S, S, T, 2)
 
         grid = grid.to(device)  # grid value, (S*S*T, 3)
 
-        x = x.reshape(bs, -1, 5)  # (batchsize, S*S, 5)
+        x = x.reshape(bs, -1, 4)  # (batchsize, S*S, 4)
 
-        pred = model(x, grid)  # (batchsize, S*S*T, 2)
+        pred = model(x, grid)  # (batchsize, S*S*T, 4)
         pred = pred.reshape(bs, S, S, T, 2)  # (batchsize, S, S, T, 2)
 
         # remove the first time point
         pred = pred[:, :, :, 1:, :]
         y = y[:, :, :, 1:, :]
 
-        step_eval_dict = utils.util_metrics.eval_incom_ns2d(pred, y, metrics_list)
+        step_eval_dict = utils.util_metrics.eval_com_ns2d(pred, y, metrics_list)
         for metric_name in metrics_list:
             epoch_metrics_dict[metric_name].append(step_eval_dict[metric_name])
 
@@ -60,7 +60,7 @@ def eval_ns_deeponet(model,
     return epoch_metrics_dict, epoch_metrics_ave_dict
 
 
-def train_deeponet_incomns2d_pdebench(config, device='cuda:0'):
+def train_deeponet_comns2d_pdebench(config, device='cuda:0'):
     '''
     Train DeepONet for Incompressible Navier Stokes 2D (PDEBench)
     '''
@@ -70,20 +70,20 @@ def train_deeponet_incomns2d_pdebench(config, device='cuda:0'):
     eval_epoch = config['train']['eval_epoch']
     save_epoch = config['train']['save_epoch']
 
-    dataset = IncompressibleNavierStokes2DDatasetBaseline(dataset_params=data_config, split='train')
+    dataset = CompressibleNavierStokes2DDatasetBaseline(dataset_params=data_config, split='train')
     dataloader = DataLoader(dataset,
                             batch_size=batch_size,
                             drop_last=True,
                             shuffle=True)
 
-    val_dataset = IncompressibleNavierStokes2DDatasetBaseline(dataset_params=data_config, split='val')
+    val_dataset = CompressibleNavierStokes2DDatasetBaseline(dataset_params=data_config, split='val')
     val_dataloader = DataLoader(val_dataset,
                                 batch_size=batch_size,
                                 drop_last=False,
                                 shuffle=False)
 
     u0_dim = dataset.S ** 2
-    model = DeepONetNS(branch_layer=[u0_dim * 5] + config['model']['branch_layers'],
+    model = DeepONetNS(branch_layer=[u0_dim * 4] + config['model']['branch_layers'],
                      trunk_layer=[3] + config['model']['trunk_layers']).to(device)
     optimizer = Adam(model.parameters(), lr=config['train']['base_lr'])
     scheduler = MultiStepLR(optimizer,
@@ -113,12 +113,12 @@ def train_deeponet_incomns2d_pdebench(config, device='cuda:0'):
             assert __ == 2
             assert bs == batch_size
 
-            x = x.to(device)  # initial condition, (batchsize, S, S, 1, 5)
-            y = y.to(device)  # ground truth, (batchsize, S, S, T, 5)
+            x = x.to(device)  # initial condition, (batchsize, S, S, 1, 4)
+            y = y.to(device)  # ground truth, (batchsize, S, S, T, 2)
             grid = dataset.xyt
             grid = grid.to(device)  # grid value, (S*S*T, 3)
 
-            x = x.reshape(bs, -1, 5)  # (batchsize, S*S, 5)
+            x = x.reshape(bs, -1, 4)  # (batchsize, S*S, 4)
 
             pred = model(x, grid)  # (batchsize, S*S*T, 2)
             pred = pred.reshape(bs, S, S, T, 2)  # (batchsize, S, S, T, 2)

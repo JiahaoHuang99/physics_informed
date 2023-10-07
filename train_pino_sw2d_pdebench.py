@@ -10,14 +10,14 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 
 import utils.util_metrics
-from utils.util_torch_fdm import gradient_xx_scalar, gradient_yy_scalar, gradient_t
-from models import FNO3d_DR2D
+# from utils.util_torch_fdm import gradient_xx_scalar, gradient_yy_scalar, gradient_t
+from models import FNO3d_SW2D
 
 from train_utils.losses import LpLoss
 from train_utils.datasets import sample_data
 from train_utils.utils import save_ckpt, count_params, dict2str
 
-from data_pde.dataset_diffusion_reaction_2d_pdebench_d2 import DiffusionReaction2DDataset
+from data_pde.dataset_shallow_water_2d_pdebench_d2 import ShallowWater2DDataset
 
 try:
     import wandb
@@ -26,7 +26,7 @@ except ImportError:
 
 
 @torch.no_grad()
-def eval_dr(model,
+def eval_sw(model,
             val_loader,
             metrics_list,
             device='cpu'):
@@ -35,15 +35,15 @@ def eval_dr(model,
     epoch_metrics_dict = {}
     for metric_name in metrics_list:
         epoch_metrics_dict[metric_name] = []
-    for a, u in val_loader:  # FIXME
+    for a, u in val_loader:
         a, u = a.to(device), u.to(device)
-        out = model(a).squeeze(dim=-1)
+        out = model(a)
 
         # remove the first time point
         u = u[:, :, :, 1:, :]
         out = out[:, :, :, 1:, :]
 
-        step_eval_dict = utils.util_metrics.eval_dr2d(out, u, metrics_list)
+        step_eval_dict = utils.util_metrics.eval_sw2d(out, u, metrics_list)
         for metric_name in metrics_list:
             epoch_metrics_dict[metric_name].append(step_eval_dict[metric_name])
 
@@ -54,7 +54,7 @@ def eval_dr(model,
     return epoch_metrics_dict, epoch_metrics_ave_dict
 
 
-def train_dr(model,
+def train_sw(model,
              train_u_loader,        # training data
              train_a_loader,        # initial conditions
              val_loader,            # validation data
@@ -112,7 +112,7 @@ def train_dr(model,
             a = a.to(device)
             u = u.to(device)
             out = model(a)
-            ic_loss, f_loss = PINO_DR2D_loss(out)
+            ic_loss, f_loss = PINO_SW2D_loss(out)
 
         else:
             f_loss = torch.zeros(1, device=device)
@@ -130,7 +130,7 @@ def train_dr(model,
         log_dict['pde'] = f_loss.item()
 
         if e % eval_step == 0:
-            epoch_metrics_dict, epoch_metrics_ave_dict = eval_dr(model, val_loader, config['data']['val']['metrics_list'], device)
+            epoch_metrics_dict, epoch_metrics_ave_dict = eval_sw(model, val_loader, config['data']['val']['metrics_list'], device)
             for metric_name in config['data']['val']['metrics_list']:
                 log_dict[f'VAL METRICS/{metric_name}'] = epoch_metrics_ave_dict[metric_name]
 
@@ -148,8 +148,8 @@ def train_dr(model,
         run.finish()
 
 
-def PINO_DR2D_loss(uv, space_range=2, time_range=5):
-
+def PINO_SW2D_loss(uv, space_range=2, time_range=5):
+    raise NotImplementedError
     device = uv.device
     batchsize, nx, ny, nt, _ = uv.shape
     assert _ == 2
@@ -181,8 +181,8 @@ def PINO_DR2D_loss(uv, space_range=2, time_range=5):
     return loss_ic, loss_f
 
 
-def FDM_DR_2D(u, D, dx, dy, dt,):
-
+def FDM_SW_2D(u, D, dx, dy, dt,):
+    raise NotImplementedError
     u_t = gradient_t(u, dt=dt)
     gradxx_u = gradient_xx_scalar(u, dx=dx)
     gradyy_u = gradient_yy_scalar(u, dy=dy)
@@ -206,7 +206,7 @@ def subprocess(args):
         torch.cuda.manual_seed_all(seed)
 
     # create model 
-    model = FNO3d_DR2D(modes1=config['model']['modes1'],
+    model = FNO3d_SW2D(modes1=config['model']['modes1'],
                        modes2=config['model']['modes2'],
                        modes3=config['model']['modes3'],
                        fc_dim=config['model']['fc_dim'],
@@ -228,22 +228,22 @@ def subprocess(args):
     
     if args.test:
         batchsize = config['test']['batchsize']
-        testset = DiffusionReaction2DDataset(dataset_params=config['data'], split='test')
+        testset = ShallowWater2DDataset(dataset_params=config['data'], split='test')
         testloader = DataLoader(testset, batch_size=batchsize, num_workers=4)
         criterion = LpLoss()
-        test_err, std_err = eval_dr(model, testloader, criterion, device)
+        test_err, std_err = eval_sw(model, testloader, criterion, device)
         print(f'Averaged test relative L2 error: {test_err}; Standard error: {std_err}')
     else:
         # training set
         batchsize = config['train']['batchsize']
-        u_set = DiffusionReaction2DDataset(dataset_params=config['data'], split='train')
+        u_set = ShallowWater2DDataset(dataset_params=config['data'], split='train')
         u_loader = DataLoader(u_set, batch_size=batchsize, num_workers=4, shuffle=True)
 
-        a_set = DiffusionReaction2DDataset(dataset_params=config['data'], split='train')
+        a_set = ShallowWater2DDataset(dataset_params=config['data'], split='train')
         a_loader = DataLoader(a_set, batch_size=batchsize, num_workers=4, shuffle=True)
 
         # val set
-        valset = DiffusionReaction2DDataset(dataset_params=config['data'], split='val')
+        valset = ShallowWater2DDataset(dataset_params=config['data'], split='val')
         val_loader = DataLoader(valset, batch_size=batchsize, num_workers=4)
 
         print(f'Train set: {len(u_set)}; Test set: {len(valset)}.')
@@ -256,7 +256,7 @@ def subprocess(args):
             optimizer.load_state_dict(ckpt['optim'])
             scheduler.load_state_dict(ckpt['scheduler'])
 
-        train_dr(model,
+        train_sw(model,
                  u_loader,
                  a_loader,
                  val_loader, 
@@ -273,7 +273,7 @@ if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True
     # parse options
     parser = ArgumentParser(description='Basic paser')
-    parser.add_argument('--config', type=str, default='configs/pino/PINO-DR2D-PDEBench-debug.yaml', help='Path to the configuration file')
+    parser.add_argument('--config', type=str, default='configs/fno/FNO-SW2D-PDEBench-debug.yaml', help='Path to the configuration file')
     parser.add_argument('--log', action='store_true', help='Turn on the wandb')
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--ckpt', type=str, default=None)

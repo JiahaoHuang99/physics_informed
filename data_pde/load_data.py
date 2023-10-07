@@ -42,6 +42,14 @@ def load_data(DATASET_NAME, dataset_params):
     elif DATASET_NAME in ['DIFFUSION_REACTION_2D', 'DIFFUSION_REACTION_2D_PDEBench']:
         from data_pde.dataset_diffusion_reaction_2d_pdebench_d2 import LoadDiffusionReaction2DDatasetDGL as dataset_class
 
+    # Shallow Water Dataset
+    elif DATASET_NAME in ['SHALLOW_WATER_2D', 'SHALLOW_WATER_2D_PDEBench']:
+        from data_pde.dataset_shallow_water_2d_pdebench_d2 import LoadShallowWater2DDatasetDGL as dataset_class
+
+    # Incompressible Navier-Stokes Dataset
+    elif DATASET_NAME in ['COMPRESSIBLE_NAVIER_STOKES_2D_D2', 'COMPRESSIBLE_NAVIER_STOKES_2D_D2_PDEBench']:
+        from data_pde.dataset_compressible_navier_stokes_2d_pdebench_d2 import LoadCompressibleNavierStokes2DDatasetDGL as dataset_class
+
     else:
         raise ValueError('Dataset {} not found'.format(DATASET_NAME))
 

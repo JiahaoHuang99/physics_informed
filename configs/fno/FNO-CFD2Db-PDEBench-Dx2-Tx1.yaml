@@ -1,0 +1,64 @@
+data:
+  train:
+    name: 'CFD2Db-PDEBench'
+    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/CompressibleNavierStokes/CompressibleNavierStokes2D/PDEBench/npz/2D_CFD_Rand_M0.1_Eta0.01_Zeta0.01_periodic_128_Train/train'
+    n_all_samples: 9000
+    reduced_resolution: 2
+    reduced_resolution_t: 1
+    real_space_range: [0, 1]
+    real_time_range: [0, 1]
+    in_seq: 1
+    out_seq: 20
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+  val:
+    name: 'CFD2Db-PDEBench'
+    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/CompressibleNavierStokes/CompressibleNavierStokes2D/PDEBench/npz/2D_CFD_Rand_M0.1_Eta0.01_Zeta0.01_periodic_128_Train/test'
+    n_all_samples: 1000
+    reduced_resolution: 2
+    reduced_resolution_t: 1
+    real_space_range: [0, 1]
+    real_time_range: [0, 1]
+    in_seq: 1
+    out_seq: 20
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+  test:
+    name: 'CFD2Db-PDEBench'
+    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/CompressibleNavierStokes/CompressibleNavierStokes2D/PDEBench/npz/2D_CFD_Rand_M0.1_Eta0.01_Zeta0.01_periodic_128_Train/test'
+    n_all_samples: 1000
+    reduced_resolution: 2
+    reduced_resolution_t: 1
+    real_space_range: [0, 1]
+    real_time_range: [0, 1]
+    in_seq: 1
+    out_seq: 20
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+
+model:
+  layers: [64, 64, 64, 64, 64]
+  modes1: [12, 12, 12, 12]
+  modes2: [12, 12, 12, 12]
+  modes3: [12, 12, 12, 12]
+  fc_dim: 128
+  act: gelu
+  pad_ratio: [0.0, 0.125]
+  in_dim: 7
+  out_dim: 2
+
+train:
+  batchsize: 8
+  num_iter: 200_001
+  milestones: [20_000, 60_000, 120_000]
+  base_lr: 0.001
+  scheduler_gamma: 0.5
+  ic_loss: 0.0
+  f_loss: 0.0
+  xy_loss: 10.0
+  save_step: 5000
+  eval_step: 1
+
+log:
+  logdir: /home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/CFD2D/FNO/FNO-CFD2Db-PDEBench-Dx2-Tx1
+  entity: jiahaohuang
+  project: PhysGTN-CFD
+  wandb_mode: online
+  name: FNO-CFD2Db-PDEBench-Dx2-Tx1

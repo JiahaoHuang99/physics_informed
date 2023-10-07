@@ -6,11 +6,11 @@ from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
 
-from baselines.model import DeepONetNS
+from baselines.model import DeepONetSW
 from train_utils.losses import LpLoss
 from train_utils.utils import save_checkpoint
 from baselines.data import DeepONetCPNS
-from data_pde.dataset_incompressible_navier_stokes_2d_pdebench_d2 import IncompressibleNavierStokes2DDatasetBaseline
+from data_pde.dataset_shallow_water_2d_pdebench_d2 import ShallowWater2DDatasetBaseline
 import utils.util_metrics
 import numpy as np
 
@@ -21,11 +21,11 @@ except ImportError:
 
 
 @torch.no_grad()
-def eval_ns_deeponet(model,
-                     grid,
-                     val_loader,
-                     metrics_list,
-                     device='cpu'):
+def eval_sw2d_deeponet(model,
+                       grid,
+                       val_loader,
+                       metrics_list,
+                       device='cpu'):
 
     model.eval()
 
@@ -35,21 +35,21 @@ def eval_ns_deeponet(model,
     for x, y in val_loader:
         bs, S, _, T, __ = y.shape
 
-        x = x.to(device)  # initial condition, (batchsize, S, S, 1, 5)
-        y = y.to(device)  # ground truth, (batchsize, S, S, T, 5)
+        x = x.to(device)  # initial condition, (batchsize, S, S, 1, 1)
+        y = y.to(device)  # ground truth, (batchsize, S, S, T, 1)
 
         grid = grid.to(device)  # grid value, (S*S*T, 3)
 
-        x = x.reshape(bs, -1, 5)  # (batchsize, S*S, 5)
+        x = x.reshape(bs, -1, 1)  # (batchsize, S*S, 1)
 
-        pred = model(x, grid)  # (batchsize, S*S*T, 2)
-        pred = pred.reshape(bs, S, S, T, 2)  # (batchsize, S, S, T, 2)
+        pred = model(x, grid)  # (batchsize, S*S*T, 1)
+        pred = pred.reshape(bs, S, S, T, 1)  # (batchsize, S, S, T, 1)
 
         # remove the first time point
         pred = pred[:, :, :, 1:, :]
         y = y[:, :, :, 1:, :]
 
-        step_eval_dict = utils.util_metrics.eval_incom_ns2d(pred, y, metrics_list)
+        step_eval_dict = utils.util_metrics.eval_sw2d(pred, y, metrics_list)
         for metric_name in metrics_list:
             epoch_metrics_dict[metric_name].append(step_eval_dict[metric_name])
 
@@ -60,7 +60,7 @@ def eval_ns_deeponet(model,
     return epoch_metrics_dict, epoch_metrics_ave_dict
 
 
-def train_deeponet_incomns2d_pdebench(config, device='cuda:0'):
+def train_deeponet_sw2d_pdebench(config, device='cuda:0'):
     '''
     Train DeepONet for Incompressible Navier Stokes 2D (PDEBench)
     '''
@@ -70,21 +70,21 @@ def train_deeponet_incomns2d_pdebench(config, device='cuda:0'):
     eval_epoch = config['train']['eval_epoch']
     save_epoch = config['train']['save_epoch']
 
-    dataset = IncompressibleNavierStokes2DDatasetBaseline(dataset_params=data_config, split='train')
+    dataset = ShallowWater2DDatasetBaseline(dataset_params=data_config, split='train')
     dataloader = DataLoader(dataset,
                             batch_size=batch_size,
                             drop_last=True,
                             shuffle=True)
 
-    val_dataset = IncompressibleNavierStokes2DDatasetBaseline(dataset_params=data_config, split='val')
+    val_dataset = ShallowWater2DDatasetBaseline(dataset_params=data_config, split='val')
     val_dataloader = DataLoader(val_dataset,
                                 batch_size=batch_size,
                                 drop_last=False,
                                 shuffle=False)
 
     u0_dim = dataset.S ** 2
-    model = DeepONetNS(branch_layer=[u0_dim * 5] + config['model']['branch_layers'],
-                     trunk_layer=[3] + config['model']['trunk_layers']).to(device)
+    model = DeepONetSW(branch_layer=[u0_dim * 1] + config['model']['branch_layers'],
+                       trunk_layer=[3] + config['model']['trunk_layers']).to(device)
     optimizer = Adam(model.parameters(), lr=config['train']['base_lr'])
     scheduler = MultiStepLR(optimizer,
                             milestones=config['train']['milestones'],
@@ -110,18 +110,18 @@ def train_deeponet_incomns2d_pdebench(config, device='cuda:0'):
         for x, y in dataloader:
             bs, S, _, T, __ = y.shape
             assert S == _
-            assert __ == 2
+            assert __ == 1
             assert bs == batch_size
 
-            x = x.to(device)  # initial condition, (batchsize, S, S, 1, 5)
-            y = y.to(device)  # ground truth, (batchsize, S, S, T, 5)
+            x = x.to(device)  # initial condition, (batchsize, S, S, 1, 1)
+            y = y.to(device)  # ground truth, (batchsize, S, S, T, 1)
             grid = dataset.xyt
             grid = grid.to(device)  # grid value, (S*S*T, 3)
 
-            x = x.reshape(bs, -1, 5)  # (batchsize, S*S, 5)
+            x = x.reshape(bs, -1, 1)  # (batchsize, S*S, 1)
 
-            pred = model(x, grid)  # (batchsize, S*S*T, 2)
-            pred = pred.reshape(bs, S, S, T, 2)  # (batchsize, S, S, T, 2)
+            pred = model(x, grid)  # (batchsize, S*S*T, 1)
+            pred = pred.reshape(bs, S, S, T, 1)  # (batchsize, S, S, T, 1)
 
             loss = myloss(pred, y)
 
@@ -151,12 +151,12 @@ def train_deeponet_incomns2d_pdebench(config, device='cuda:0'):
                             relative_path=False)
 
         if e % eval_epoch == 0:
-            epoch_metrics_dict, epoch_metrics_ave_dict = eval_ns_deeponet(model,
-                                                                          grid,
-                                                                          val_dataloader,
-                                                                          config['data']['val']['metrics_list'],
-                                                                          device=device
-                                                                          )
+            epoch_metrics_dict, epoch_metrics_ave_dict = eval_sw2d_deeponet(model,
+                                                                            grid,
+                                                                            val_dataloader,
+                                                                            config['data']['val']['metrics_list'],
+                                                                            device=device
+                                                                            )
 
             for metric_name in config['data']['val']['metrics_list']:
                 log_dict[f'VAL METRICS/{metric_name}'] = epoch_metrics_ave_dict[metric_name]

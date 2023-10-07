@@ -51,14 +51,14 @@ train:
   base_lr: 0.001
   scheduler_gamma: 0.5
   ic_loss: 0.0
-  f_loss: 0.0
+  f_loss: 1.0
   xy_loss: 10.0
   save_step: 10
   eval_step: 1
 
 log:
-  logdir: FNO-DR2D-PDEBench-debug
+  logdir: PINO-DR2D-PDEBench-debug
   entity: jiahaohuang
   project: PhysGTN-DR
   wandb_mode: offline
-  name: FNO-DR2D-PDEBench-debug
+  name: PINO-DR2D-PDEBench-debug

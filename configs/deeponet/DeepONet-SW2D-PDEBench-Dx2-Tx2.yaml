@@ -1,0 +1,58 @@
+data:
+  name: 'SW2D-PDEBench'
+  train:
+    name: 'SW2D-PDEBench'
+    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/ShallowWater/PDEBench/npz/train'
+    n_all_samples: 900
+    reduced_resolution: 2
+    reduced_resolution_t: 2
+    real_space_range: [-0.25, 0.25]
+    real_time_range: [0, 1]
+    in_seq: 1
+    out_seq: 50
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+  val:
+    name: 'SW2D-PDEBench'
+    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/ShallowWater/PDEBench/npz/test'
+    n_all_samples: 100
+    reduced_resolution: 2
+    reduced_resolution_t: 2
+    real_space_range: [-0.25, 0.25]
+    real_time_range: [0, 1]
+    in_seq: 1
+    out_seq: 50
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+  test:
+    name: 'SW2D-PDEBench'
+    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/ShallowWater/PDEBench/npz/test'
+    n_all_samples: 100
+    reduced_resolution: 2
+    reduced_resolution_t: 2
+    real_space_range: [-0.25, 0.25]
+    real_time_range: [0, 1]
+    in_seq: 1
+    out_seq: 50
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+
+model:
+  branch_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
+  trunk_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
+  activation: tanh
+
+train:
+  batchsize: 8
+  epochs: 2000
+  milestones: [400, 800, 1200]
+  base_lr: 0.001
+  scheduler_gamma: 0.5
+  save_dir: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/SW2D/DeepONet-SW2D-PDEBench-Dx2-Tx2'
+  save_name: 'DeepONet-SW2D-PDEBench-Dx2-Tx2.pt'
+  save_epoch: 100
+  eval_epoch: 1
+
+log:
+  logdir: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/SW2D/DeepONet-SW2D-PDEBench-Dx2-Tx2'
+  entity: jiahaohuang
+  project: PhysGTN-SW
+  wandb_mode: online
+  name: DeepONet-SW2D-PDEBench-Dx2-Tx2

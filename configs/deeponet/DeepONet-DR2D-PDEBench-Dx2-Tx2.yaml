@@ -1,4 +1,5 @@
 data:
+  name: 'DR2D-PDEBench'
   train:
     name: 'DR2D-PDEBench'
     dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/DiffusionReaction/PDEBench/npz/train'
@@ -34,31 +35,24 @@ data:
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
 
 model:
-  layers: [64, 64, 64, 64, 64]
-  modes1: [12, 12, 12, 12]
-  modes2: [12, 12, 12, 12]
-  modes3: [12, 12, 12, 12]
-  fc_dim: 128
-  act: gelu
-  pad_ratio: [0.0, 0.125]
-  in_dim: 5
-  out_dim: 2
+  branch_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
+  trunk_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
+  activation: tanh
 
 train:
   batchsize: 8
-  num_iter: 200_001
-  milestones: [20_000, 60_000, 120_000]
+  epochs: 2000
+  milestones: [400, 800, 1200]
   base_lr: 0.001
   scheduler_gamma: 0.5
-  ic_loss: 0.0
-  f_loss: 0.0
-  xy_loss: 10.0
-  save_step: 5000
-  eval_step: 1
+  save_dir: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/DR2D/DeepONet-DR2D-PDEBench-Dx2-Tx2'
+  save_name: 'DeepONet-DR2D-PDEBench-Dx2-Tx2.pt'
+  save_epoch: 100
+  eval_epoch: 1
 
 log:
-  logdir: /home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/DR2D/FNO/FNO-DR2D-PDEBench-Dx2-Tx2
+  logdir: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/DR2D/DeepONet/DeepONet-DR2D-PDEBench-Dx2-Tx2'
   entity: jiahaohuang
   project: PhysGTN-DR
   wandb_mode: online
-  name: FNO-DR2D-PDEBench-Dx2-Tx2
+  name: DeepONet-DR2D-PDEBench-Dx2-Tx2

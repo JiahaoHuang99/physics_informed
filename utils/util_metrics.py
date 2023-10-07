@@ -66,8 +66,50 @@ def eval_incom_ns2d(input, target, metrics_list):
 
     return dict
 
+def eval_com_ns2d(input, target, metrics_list):
+    dict = {}
+    for metric_name in metrics_list:
+        if metric_name in ['MSE', 'L2']:
+            dict[metric_name] = MSELoss(reduction='mean')(input, target).item()
+        elif metric_name in ['MAE', 'L1']:
+            dict[metric_name] = L1Loss(reduction='mean')(input, target).item()
+        elif metric_name in ['RMSE']:
+            dict[metric_name] = metric_func(input, target)[0].item()
+        elif metric_name in ['nRMSE']:
+            dict[metric_name] = metric_func(input, target)[1].item()
+        elif metric_name in ['CSV']:
+            dict[metric_name] = metric_func(input, target)[2].item()
+        elif metric_name in ['Max']:
+            dict[metric_name] = metric_func(input, target)[3].item()
+        else:
+            raise NotImplementedError
+
+    return dict
+
+
 
 def eval_dr2d(input, target, metrics_list):
+    dict = {}
+    for metric_name in metrics_list:
+        if metric_name in ['MSE', 'L2']:
+            dict[metric_name] = MSELoss(reduction='mean')(input, target).item()
+        elif metric_name in ['MAE', 'L1']:
+            dict[metric_name] = L1Loss(reduction='mean')(input, target).item()
+        elif metric_name in ['RMSE']:
+            dict[metric_name] = metric_func(input, target)[0].item()
+        elif metric_name in ['nRMSE']:
+            dict[metric_name] = metric_func(input, target)[1].item()
+        elif metric_name in ['CSV']:
+            dict[metric_name] = metric_func(input, target)[2].item()
+        elif metric_name in ['Max']:
+            dict[metric_name] = metric_func(input, target)[3].item()
+        else:
+            raise NotImplementedError
+
+    return dict
+
+
+def eval_sw2d(input, target, metrics_list):
     dict = {}
     for metric_name in metrics_list:
         if metric_name in ['MSE', 'L2']:

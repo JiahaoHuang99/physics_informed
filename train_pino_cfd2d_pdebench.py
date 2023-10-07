@@ -11,13 +11,13 @@ from torch.utils.data import DataLoader
 
 import utils.util_metrics
 from utils.util_torch_fdm import gradient_xx_scalar, gradient_yy_scalar, gradient_t
-from models import FNO3d_DR2D
+from models import FNO3d_comNS2D
 
 from train_utils.losses import LpLoss
 from train_utils.datasets import sample_data
 from train_utils.utils import save_ckpt, count_params, dict2str
 
-from data_pde.dataset_diffusion_reaction_2d_pdebench_d2 import DiffusionReaction2DDataset
+from data_pde.dataset_compressible_navier_stokes_2d_pdebench_d2 import CompressibleNavierStokes2DDataset
 
 try:
     import wandb
@@ -206,15 +206,15 @@ def subprocess(args):
         torch.cuda.manual_seed_all(seed)
 
     # create model 
-    model = FNO3d_DR2D(modes1=config['model']['modes1'],
-                       modes2=config['model']['modes2'],
-                       modes3=config['model']['modes3'],
-                       fc_dim=config['model']['fc_dim'],
-                       layers=config['model']['layers'],
-                       act=config['model']['act'],
-                       in_dim=config['model']['in_dim'],
-                       out_dim=config['model']['out_dim'],
-                       pad_ratio=config['model']['pad_ratio']).to(device)
+    model = FNO3d_comNS2D(modes1=config['model']['modes1'],
+                          modes2=config['model']['modes2'],
+                          modes3=config['model']['modes3'],
+                          fc_dim=config['model']['fc_dim'],
+                          layers=config['model']['layers'],
+                          act=config['model']['act'],
+                          in_dim=config['model']['in_dim'],
+                          out_dim=config['model']['out_dim'],
+                          pad_ratio=config['model']['pad_ratio']).to(device)
 
     num_params = count_params(model)
     config['num_params'] = num_params
@@ -228,7 +228,7 @@ def subprocess(args):
     
     if args.test:
         batchsize = config['test']['batchsize']
-        testset = DiffusionReaction2DDataset(dataset_params=config['data'], split='test')
+        testset = CompressibleNavierStokes2DDataset(dataset_params=config['data'], split='test')
         testloader = DataLoader(testset, batch_size=batchsize, num_workers=4)
         criterion = LpLoss()
         test_err, std_err = eval_dr(model, testloader, criterion, device)
@@ -236,14 +236,14 @@ def subprocess(args):
     else:
         # training set
         batchsize = config['train']['batchsize']
-        u_set = DiffusionReaction2DDataset(dataset_params=config['data'], split='train')
+        u_set = CompressibleNavierStokes2DDataset(dataset_params=config['data'], split='train')
         u_loader = DataLoader(u_set, batch_size=batchsize, num_workers=4, shuffle=True)
 
-        a_set = DiffusionReaction2DDataset(dataset_params=config['data'], split='train')
+        a_set = CompressibleNavierStokes2DDataset(dataset_params=config['data'], split='train')
         a_loader = DataLoader(a_set, batch_size=batchsize, num_workers=4, shuffle=True)
 
         # val set
-        valset = DiffusionReaction2DDataset(dataset_params=config['data'], split='val')
+        valset = CompressibleNavierStokes2DDataset(dataset_params=config['data'], split='val')
         val_loader = DataLoader(valset, batch_size=batchsize, num_workers=4)
 
         print(f'Train set: {len(u_set)}; Test set: {len(valset)}.')
@@ -273,7 +273,7 @@ if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True
     # parse options
     parser = ArgumentParser(description='Basic paser')
-    parser.add_argument('--config', type=str, default='configs/pino/PINO-DR2D-PDEBench-debug.yaml', help='Path to the configuration file')
+    parser.add_argument('--config', type=str, default='configs/fno/FNO-CFD2Da-PDEBench-debug.yaml', help='Path to the configuration file')
     parser.add_argument('--log', action='store_true', help='Turn on the wandb')
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--ckpt', type=str, default=None)
