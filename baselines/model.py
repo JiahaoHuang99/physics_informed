@@ -3,6 +3,7 @@ import torch.nn as nn
 from models.FCN import DenseNet
 from typing import List
 from .utils import weighted_mse
+from einops import rearrange
 
 
 class DeepONet(nn.Module):
@@ -30,6 +31,22 @@ class DeepONetNS(nn.Module):
         u0 = u0.view(batchsize, -1)
         a = self.branch(u0)
         a = a.view(batchsize, -1, 2)
+        b = self.trunk(grid)
+
+        return torch.einsum('bic,ni->bnc', a, b)
+
+
+class DeepONetDR(nn.Module):
+    def __init__(self, branch_layer, trunk_layer):
+        super(DeepONetDR, self).__init__()
+        self.branch = DenseNet(branch_layer, nn.ReLU)
+        self.trunk = DenseNet(trunk_layer, nn.ReLU)
+
+    def forward(self, u0, grid):
+        batchsize = u0.shape[0]
+        u0 = rearrange(u0, 'b n c -> b c n')
+        a = self.branch(u0)  # b c_feat n
+        a = rearrange(a, 'b c n -> b n c')
         b = self.trunk(grid)
 
         return torch.einsum('bic,ni->bnc', a, b)

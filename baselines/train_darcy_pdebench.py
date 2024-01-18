@@ -54,6 +54,7 @@ def train_deeponet_darcy_pdebench(config, device='cuda:0'):
     # device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     data_config = config['data']
     batch_size = config['train']['batchsize']
+    save_epoch = config['train']['save_epoch']
     eval_epoch = config['train']['eval_epoch']
 
     dataset = DarcyFlow(dataset_params=data_config, split='train')
@@ -81,7 +82,8 @@ def train_deeponet_darcy_pdebench(config, device='cuda:0'):
 
     pbar = range(config['train']['epochs'])
     pbar = tqdm(pbar, dynamic_ncols=True, smoothing=0.1)
-    myloss = LpLoss(size_average=True)
+    # myloss = LpLoss(size_average=True)
+    myloss = torch.nn.MSELoss(reduction='mean')
     model.train()
     grid = dataset.mesh
     grid = grid.reshape(-1, 2).to(device)  # grid value, (SxS, 2)
@@ -112,7 +114,7 @@ def train_deeponet_darcy_pdebench(config, device='cuda:0'):
                 f'Epoch: {e}; Averaged train loss: {train_loss:.5f}; '
             )
         )
-        if e % 1000 == 0:
+        if e % save_epoch == 0:
             print(f'Epoch: {e}, averaged train loss: {train_loss:.5f}')
             save_checkpoint(config['train']['save_dir'],
                             config['train']['save_name'].replace('.pt', f'_{e}.pt'),

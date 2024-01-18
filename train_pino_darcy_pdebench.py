@@ -80,6 +80,11 @@ def train(model,
 
     # loss fn
     lploss = LpLoss(size_average=True)
+
+    if 'use_mse_loss' in config['train'].keys():
+        if config['train']['use_mse_loss']:
+            lploss = torch.nn.MSELoss()
+
     # mollifier
     u_mol = get_molifier(train_u_loader.dataset.mesh, device)
     ic_mol = get_molifier(ic_loader.dataset.mesh, device)
@@ -230,12 +235,12 @@ if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True
     # parse options
     parser = ArgumentParser(description='Basic paser')
-    parser.add_argument('--config', type=str, default='configs/pino/PINO-DarcyFlow-PDEBench-beta1.0_res_Dx8_PIx2.yaml', help='Path to the configuration file')
+    parser.add_argument('--config', type=str, default='', help='Path to the configuration file')
     parser.add_argument('--log', action='store_true', help='Turn on the wandb')
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--ckpt', type=str, default=None)
     parser.add_argument('--test', action='store_true', help='Test')
-    parser.add_argument('--device', default='cuda:0')
+    parser.add_argument('--device', default='cuda:1')
 
     args = parser.parse_args()
     if args.seed is None:

@@ -51,14 +51,14 @@ train:
   base_lr: 0.001
   scheduler_gamma: 0.5
   ic_loss: 0.0
-  f_loss: 1.0
-  xy_loss: 10.0
+  f_loss: 0.2
+  xy_loss: 1.0
   save_step: 5000
   eval_step: 1
 
 log:
-  logdir: /home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/DR2D/PINO/PINO-DR2D-PDEBench-Dx2-Tx2
+  logdir: /home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/results_comparison/DR2D/PINO/PINO-DR2D-PDEBench-Dx1-Tx1-MSE
   entity: jiahaohuang
   project: PhysGTN-DR
   wandb_mode: online
-  name: PINO-DR2D-PDEBench-Dx2-Tx2
+  name: PINO-DR2D-PDEBench-Dx1-Tx1-MSE

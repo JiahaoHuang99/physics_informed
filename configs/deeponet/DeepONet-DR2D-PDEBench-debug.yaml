@@ -5,37 +5,37 @@ data:
     dataset_path: '/media/ssd/data_temp/PDE/data/DiffusionReaction/PDEBench/npz/train'
     n_all_samples: 10
     reduced_resolution: 4
-    reduced_resolution_t: 10
+    reduced_resolution_t: 1
     real_space_range: [-1, 1]
     real_time_range: [0, 5]
-    in_seq: 1
-    out_seq: 50
+    in_seq: 10
+    out_seq: 91
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   val:
     name: 'DR2D-PDEBench'
     dataset_path: '/media/ssd/data_temp/PDE/data/DiffusionReaction/PDEBench/npz/test'
     n_all_samples: 10
     reduced_resolution: 4
-    reduced_resolution_t: 10
+    reduced_resolution_t: 1
     real_space_range: [-1, 1]
     real_time_range: [0, 5]
-    in_seq: 1
-    out_seq: 50
+    in_seq: 10
+    out_seq: 91
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   test:
     name: 'DR2D-PDEBench'
     dataset_path: '/media/ssd/data_temp/PDE/data/DiffusionReaction/PDEBench/npz/test'
     n_all_samples: 10
     reduced_resolution: 4
-    reduced_resolution_t: 10
+    reduced_resolution_t: 1
     real_space_range: [-1, 1]
     real_time_range: [0, 5]
-    in_seq: 1
-    out_seq: 50
+    in_seq: 10
+    out_seq: 91
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
 
 model:
-  branch_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 100]
+  branch_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
   trunk_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
   activation: tanh
 
@@ -45,14 +45,14 @@ train:
   milestones: [400, 800, 1200]
   base_lr: 0.001
   scheduler_gamma: 0.5
-  save_dir: 'DeepONet-DR2D-PDEBench-debug'
+  save_dir: 'DeepONet-DR2D-PDEBench-debug/'
   save_name: 'DeepONet-DR2D-PDEBench-debug.pt'
-  save_epoch: 1
-  eval_epoch: 1
+  save_epoch: 100
+  eval_epoch: 100
 
 log:
   logdir: 'DeepONet-DR2D-PDEBench-debug'
   entity: jiahaohuang
-  project: PhysGTN-DR
-  wandb_mode: offline
+  project: DeepONet
+  wandb_mode: disabled
   name: DeepONet-DR2D-PDEBench-debug

@@ -60,5 +60,5 @@ log:
   logdir: PINO-DR2D-PDEBench-debug
   entity: jiahaohuang
   project: PhysGTN-DR
-  wandb_mode: offline
+  wandb_mode: disabled
   name: PINO-DR2D-PDEBench-debug

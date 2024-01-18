@@ -1,27 +1,27 @@
 data:
   train:
     name: 'DarcyFlow-PDEBench'
-    dataset_path: '/media/ssd/data_temp/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta0.01_Train/train'
+    dataset_path: '/media/ssd/data_temp/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta0.1_Train/train'
     n_all_samples: 9000
     reduced_resolution: 2
     real_space_range: "1"
-    beta: 0.01
+    beta: 0.1
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   val:
     name: 'DarcyFlow-PDEBench'
-    dataset_path: '/media/ssd/data_temp/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta0.01_Train/test'
+    dataset_path: '/media/ssd/data_temp/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta0.1_Train/test'
     n_all_samples: 1000
     reduced_resolution: 2
     real_space_range: "1"
-    beta: 0.01
+    beta: 0.1
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   test:
     name: 'DarcyFlow-PDEBench'
-    dataset_path: '/media/ssd/data_temp/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta0.01_Train/test'
+    dataset_path: '/media/ssd/data_temp/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta0.1_Train/test'
     n_all_samples: 1000
     reduced_resolution: 2
     real_space_range: "1"
-    beta: 0.01
+    beta: 0.1
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
 model:
   layers: [64, 64, 64, 64, 64]
@@ -37,13 +37,14 @@ train:
   milestones: [5_000, 7_500, 10_000]
   base_lr: 0.001
   scheduler_gamma: 0.5
-  f_loss: 1.0
-  xy_loss: 5.0
+  f_loss: 0.2
+  xy_loss: 1.0
   save_step: 5000000
   eval_step: 1_000
+  use_mse_loss: True
 
 log:
-  logdir: PINO-DarcyFlow-PDEBench-beta0.01
+  logdir: PINO-DarcyFlow-PDEBench-beta0.1-MSE
   entity: jiahaohuang
   project: PINO-DF
   wandb_mode: online

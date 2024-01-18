@@ -11,3 +11,4 @@ checkpoints
 *.pth
 tensordiffeq
 exp
+.wandb

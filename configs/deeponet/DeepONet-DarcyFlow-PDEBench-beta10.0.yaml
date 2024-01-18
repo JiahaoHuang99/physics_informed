@@ -4,7 +4,7 @@ data:
     name: 'DarcyFlow-PDEBench'
     dataset_path: '/media/ssd/data_temp/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta10.0_Train/train'
     n_all_samples: 9000
-    reduced_resolution: 2
+    reduced_resolution: 1
     real_space_range: "1"
     beta: 10.0
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
@@ -12,7 +12,7 @@ data:
     name: 'DarcyFlow-PDEBench'
     dataset_path: '/media/ssd/data_temp/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta10.0_Train/test'
     n_all_samples: 1000
-    reduced_resolution: 2
+    reduced_resolution: 1
     real_space_range: "1"
     beta: 10.0
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
@@ -20,7 +20,7 @@ data:
     name: 'DarcyFlow-PDEBench'
     dataset_path: '/media/ssd/data_temp/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta10.0_Train/test'
     n_all_samples: 1000
-    reduced_resolution: 2
+    reduced_resolution: 1
     real_space_range: "1"
     beta: 10.0
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
@@ -35,14 +35,15 @@ train:
   milestones: [400, 800, 1200]
   base_lr: 0.001
   scheduler_gamma: 0.5
-  save_dir: 'DeepONet-DarcyFlow-PDEBench-beta10.0'
+  save_dir: 'DeepONet-DarcyFlow-PDEBench-beta10.0/'
   save_name: 'DeepONet-DarcyFlow-PDEBench-beta10.0.pt'
-  eval_epoch: 1
+  save_epoch: 100
+  eval_epoch: 100
 
 log:
   logdir: DeepONet-DarcyFlow-PDEBench-beta10.0
   entity: jiahaohuang
-  project: DeepONet-DF
+  project: DeepONet
   wandb_mode: online
 
 

@@ -4,33 +4,33 @@ data:
     dataset_path: '/media/ssd/data_temp/PDE/data/ShallowWater/PDEBench/npz/train'
     n_all_samples: 10
     reduced_resolution: 4
-    reduced_resolution_t: 10
+    reduced_resolution_t: 1
     real_space_range: [-0.25, 0.25]
     real_time_range: [0, 1]
-    in_seq: 1
-    out_seq: 50
+    in_seq: 10
+    out_seq: 91
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   val:
     name: 'SW2D-PDEBench'
     dataset_path: '/media/ssd/data_temp/PDE/data/ShallowWater/PDEBench/npz/test'
     n_all_samples: 10
     reduced_resolution: 4
-    reduced_resolution_t: 10
+    reduced_resolution_t: 1
     real_space_range: [-0.25, 0.25]
     real_time_range: [0, 1]
-    in_seq: 1
-    out_seq: 50
+    in_seq: 10
+    out_seq: 91
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   test:
     name: 'SW2D-PDEBench'
     dataset_path: '/media/ssd/data_temp/PDE/data/ShallowWater/PDEBench/npz/test'
     n_all_samples: 10
     reduced_resolution: 4
-    reduced_resolution_t: 10
+    reduced_resolution_t: 1
     real_space_range: [-0.25, 0.25]
     real_time_range: [0, 1]
-    in_seq: 1
-    out_seq: 50
+    in_seq: 10
+    out_seq: 91
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
 
 model:
@@ -41,7 +41,7 @@ model:
   fc_dim: 128
   act: gelu
   pad_ratio: [0.0, 0.125]
-  in_dim: 4
+  in_dim: 13
   out_dim: 1
 
 train:
@@ -52,13 +52,14 @@ train:
   scheduler_gamma: 0.5
   ic_loss: 0.0
   f_loss: 0.0
-  xy_loss: 10.0
+  xy_loss: 1.0
   save_step: 10
   eval_step: 1
+  use_mse_loss: True
 
 log:
   logdir: FNO-SW2D-PDEBench-debug
   entity: jiahaohuang
   project: PhysGTN-SW
-  wandb_mode: offline
+  wandb_mode: disabled
   name: FNO-SW2D-PDEBench-debug
