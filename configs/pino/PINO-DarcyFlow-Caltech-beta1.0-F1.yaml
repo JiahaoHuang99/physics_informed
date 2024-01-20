@@ -1,13 +1,13 @@
 data:
   name: 'Darcy'
-  path: '/media/ssd/data_temp/PDE/data/DarcyFlow/CalTech/Darcy_421/piececonst_r421_N1024_smooth1.mat'
+  path: '/media/ssd/data_temp/PDE/data/DarcyFlow/Caltech/raw/Darcy_421/piececonst_r421_N1024_smooth1.mat'
   total_num: 1024
   offset: 0
   n_sample: 1000
   nx: 421
   sub: 7
   pde_sub: 2
-  metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+  metrics_list: ["MSE", "RMSE", "nRMSE", "Max", "Rel_L2_Norm"]
 
 model:
   layers: [64, 64, 64, 64, 64]
@@ -19,8 +19,8 @@ model:
 
 train:
   batchsize: 20
-  num_iter: 30_001
-  milestones: [5_000, 7_500, 10_000]
+  num_iter: 60_001
+  milestones: [5_000, 7_500, 10_000, 15_000]
   base_lr: 0.001
   scheduler_gamma: 0.5
   f_loss: 1.0
@@ -29,7 +29,7 @@ train:
   eval_step: 1_000
 
 test:
-  path: '/media/ssd/data_temp/PDE/data/DarcyFlow/CalTech/Darcy_421/piececonst_r421_N1024_smooth2.mat'
+  path: '/media/ssd/data_temp/PDE/data/DarcyFlow/Caltech/raw/Darcy_421/piececonst_r421_N1024_smooth2.mat'
   total_num: 1024
   offset: 0
   n_sample: 500

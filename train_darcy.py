@@ -241,7 +241,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Basic paser')
     parser.add_argument('--config', type=str, default='configs/pino/PINO-DarcyFlow-Caltech-debug.yaml', help='Path to the configuration file')
     parser.add_argument('--log', action='store_true', help='Turn on the wandb')
-    parser.add_argument('--seed', type=int, default=42)
+    parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--ckpt', type=str, default=None)
     parser.add_argument('--test', action='store_true', help='Test')
     parser.add_argument('--device', default='cuda:0')

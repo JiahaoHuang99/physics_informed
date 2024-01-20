@@ -4,10 +4,10 @@ data:
     dataset_path: '/media/ssd/data_temp/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta1.0_Train/train'
     n_all_samples: 9000
     reduced_resolution: 8
-    reduced_resolution_pde: 2
+    reduced_resolution_pde: 4
     real_space_range: "1"
     beta: 1.0
-    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max", "Rel_L2_Norm"]
   val:
     name: 'DarcyFlow-PDEBench'
     dataset_path: '/media/ssd/data_temp/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta1.0_Train/test'
@@ -15,7 +15,7 @@ data:
     reduced_resolution: 2
     real_space_range: "1"
     beta: 1.0
-    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max", "Rel_L2_Norm"]
   test:
     name: 'DarcyFlow-PDEBench'
     dataset_path: '/media/ssd/data_temp/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta1.0_Train/test'
@@ -23,14 +23,14 @@ data:
     reduced_resolution: 2
     real_space_range: "1"
     beta: 1.0
-    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+    metrics_list: ["MSE", "RMSE", "nRMSE", "Max", "Rel_L2_Norm"]
 model:
   layers: [64, 64, 64, 64, 64]
-  modes1: [8, 8, 8, 8]  # max floor(N/2) + 1
-  modes2: [8, 8, 8, 8]  # max floor(N/2) + 1
+  modes1: [20, 20, 20, 20]
+  modes2: [20, 20, 20, 20]
   fc_dim: 128
   act: gelu
-  pad_ratio: [0., 0.]
+  pad_ratio: 0.7
 
 train:
   batchsize: 20
@@ -44,7 +44,7 @@ train:
   eval_step: 1_000
 
 log:
-  logdir: PINO-DarcyFlow-PDEBench-beta1.0-m8-Dx8-PIx2-F1
+  logdir: PINO-DarcyFlow-PDEBench-beta1.0-F1-LR-D8P4E2-LPLMSE
   entity: jiahaohuang
   project: PINO-DF
   wandb_mode: online

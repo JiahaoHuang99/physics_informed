@@ -36,12 +36,14 @@ def FDM_Darcy(u, a, D=1):
     return Du
 
 
+
 def darcy_loss(u, a, beta=1):
     batchsize = u.size(0)
     size = u.size(1)
     u = u.reshape(batchsize, size, size)
     a = a.reshape(batchsize, size, size)
     lploss = LpLoss(size_average=True)
+    # lploss = torch.nn.MSELoss()
 
     # index_x = torch.cat([torch.tensor(range(0, size)), (size - 1) * torch.ones(size), torch.tensor(range(size-1, 1, -1)),
     #                      torch.zeros(size)], dim=0).long()
@@ -63,6 +65,37 @@ def darcy_loss(u, a, beta=1):
     # loss_f = FDM_Darcy(u, a)
     # loss_f = torch.mean(loss_f)
     return loss_f
+
+
+def darcy_loss_MSE(u, a, beta=1):
+    batchsize = u.size(0)
+    size = u.size(1)
+    u = u.reshape(batchsize, size, size)
+    a = a.reshape(batchsize, size, size)
+
+    loss_fn = torch.nn.MSELoss()
+
+    # index_x = torch.cat([torch.tensor(range(0, size)), (size - 1) * torch.ones(size), torch.tensor(range(size-1, 1, -1)),
+    #                      torch.zeros(size)], dim=0).long()
+    # index_y = torch.cat([(size - 1) * torch.ones(size), torch.tensor(range(size-1, 1, -1)), torch.zeros(size),
+    #                      torch.tensor(range(0, size))], dim=0).long()
+
+    # boundary_u = u[:, index_x, index_y]
+    # truth_u = torch.zeros(boundary_u.shape, device=u.device)
+    # loss_u = lploss.abs(boundary_u, truth_u)
+
+    Du = FDM_Darcy(u, a)
+    f = torch.ones(Du.shape, device=u.device) * beta
+    loss_f = loss_fn(Du, f)
+
+    # im = (Du-f)[0].detach().cpu().numpy()
+    # plt.imshow(im)
+    # plt.show()
+
+    # loss_f = FDM_Darcy(u, a)
+    # loss_f = torch.mean(loss_f)
+    return loss_f
+
 
 
 def FDM_NS_vorticity(w, v=1/40, t_interval=1.0):

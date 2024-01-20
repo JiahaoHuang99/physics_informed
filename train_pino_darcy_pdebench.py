@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 import utils.util_metrics
 from models import FNO2d
 
-from train_utils.losses import LpLoss, darcy_loss 
+from train_utils.losses import LpLoss, darcy_loss_MSE, darcy_loss
 from train_utils.datasets import sample_data
 from train_utils.utils import save_ckpt, count_params, dict2str
 
@@ -79,11 +79,8 @@ def train(model,
     os.makedirs(ckpt_dir, exist_ok=True)
 
     # loss fn
-    lploss = LpLoss(size_average=True)
-
-    if 'use_mse_loss' in config['train'].keys():
-        if config['train']['use_mse_loss']:
-            lploss = torch.nn.MSELoss()
+    # loss_fn = LpLoss(size_average=True)
+    loss_fn = torch.nn.MSELoss()
 
     # mollifier
     u_mol = get_molifier(train_u_loader.dataset.mesh, device)
@@ -114,7 +111,7 @@ def train(model,
             ic = ic.to(device)
             out = model(ic).squeeze(dim=-1)
             out = out * u_mol
-            data_loss = lploss(out, u)
+            data_loss = loss_fn(out, u)
         else:
             data_loss = torch.zeros(1, device=device)
 
@@ -192,9 +189,10 @@ def subprocess(args):
         batchsize = config['test']['batchsize']
         testset = DarcyFlowDataset(dataset_params=config['data'], split='test')
         testloader = DataLoader(testset, batch_size=batchsize, num_workers=4)
-        criterion = LpLoss()
+        # criterion = LpLoss()
+        criterion = torch.nn.MSELoss()
         test_err, std_err = eval_darcy(model, testloader, criterion, device)
-        print(f'Averaged test relative L2 error: {test_err}; Standard error: {std_err}')
+        print(f'Averaged test MSE error: {test_err}; Standard error: {std_err}')
     else:
         # training set
         batchsize = config['train']['batchsize']
