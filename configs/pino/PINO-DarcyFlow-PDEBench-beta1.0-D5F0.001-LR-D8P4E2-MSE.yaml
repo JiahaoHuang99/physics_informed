@@ -38,13 +38,13 @@ train:
   milestones: [5_000, 7_500, 10_000]
   base_lr: 0.001
   scheduler_gamma: 0.5
-  f_loss: 0.0
+  f_loss: 0.001
   xy_loss: 5.0
   save_step: 5000000
   eval_step: 1_000
 
 log:
-  logdir: PINO-DarcyFlow-PDEBench-beta1.0-D5-LR-D8P4E2-MSE
+  logdir: PINO-DarcyFlow-PDEBench-beta1.0-D5F0.001-LR-D8P4E2-MSE
   entity: jiahaohuang
   project: PINO-DF
   wandb_mode: online

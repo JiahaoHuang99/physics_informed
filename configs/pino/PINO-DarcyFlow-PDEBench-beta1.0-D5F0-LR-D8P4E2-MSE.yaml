@@ -44,7 +44,7 @@ train:
   eval_step: 1_000
 
 log:
-  logdir: PINO-DarcyFlow-PDEBench-beta1.0-D5-LR-D8P4E2-MSE
+  logdir: PINO-DarcyFlow-PDEBench-beta1.0-D5F0-LR-D8P4E2-MSE
   entity: jiahaohuang
   project: PINO-DF
   wandb_mode: online

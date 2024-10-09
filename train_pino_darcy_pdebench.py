@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 import utils.util_metrics
 from models import FNO2d
 
-from train_utils.losses import LpLoss, darcy_loss_MSE, darcy_loss
+from train_utils.losses import LpLoss, darcy_loss
 from train_utils.datasets import sample_data
 from train_utils.utils import save_ckpt, count_params, dict2str
 
@@ -116,15 +116,21 @@ def train(model,
             data_loss = torch.zeros(1, device=device)
 
         # pde loss
-        if f_weight > 0:
-            ic = next(ic_loader)
-            ic = ic.to(device)
-            out = model(ic).squeeze(dim=-1)
-            out = out * ic_mol
-            u0 = ic[..., 0]
-            f_loss = darcy_loss(out, u0, beta=config['data']['train']['beta'])
-        else:
-            f_loss = torch.zeros(1, device=device)
+        # if f_weight > 0:
+        #     ic = next(ic_loader)
+        #     ic = ic.to(device)
+        #     out = model(ic).squeeze(dim=-1)
+        #     out = out * ic_mol
+        #     u0 = ic[..., 0]
+        #     f_loss = darcy_loss(out, u0, beta=config['data']['train']['beta'], loss_fn=loss_fn)
+        # else:
+        #     f_loss = torch.zeros(1, device=device)
+        ic = next(ic_loader)
+        ic = ic.to(device)
+        out = model(ic).squeeze(dim=-1)
+        out = out * ic_mol
+        u0 = ic[..., 0]
+        f_loss = darcy_loss(out, u0, beta=config['data']['train']['beta'], loss_fn=loss_fn)
 
         loss = data_loss * xy_weight + f_loss * f_weight
 
