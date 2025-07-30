@@ -2,7 +2,7 @@ data:
   name: 'DR2D-PDEBench'
   train:
     name: 'DR2D-PDEBench'
-    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/DiffusionReaction/PDEBench/npz/train'
+    dataset_path: '/media/NAS07/USER_PATH/jh/PDE/data/DiffusionReaction/PDEBench/npz/train'
     n_all_samples: 900
     reduced_resolution: 1
     reduced_resolution_t: 1
@@ -13,7 +13,7 @@ data:
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   val:
     name: 'DR2D-PDEBench'
-    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/DiffusionReaction/PDEBench/npz/test'
+    dataset_path: '/media/NAS07/USER_PATH/jh/PDE/data/DiffusionReaction/PDEBench/npz/test'
     n_all_samples: 100
     reduced_resolution: 1
     reduced_resolution_t: 1
@@ -24,8 +24,8 @@ data:
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   test:
     name: 'DR2D-PDEBench'
-    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/DiffusionReaction/PDEBench/npz/test'
-    weight_path: ''
+    dataset_path: '/media/NAS07/USER_PATH/jh/PDE/data/DiffusionReaction/PDEBench/npz/test'
+    weight_path: '/media/NAS06/jiahao/Mamba_Transformer_PDE/DeepONet/DR2D/DeepONet-DR2D-PDEBench-Dx1-Tx1-MSE/DeepONet-DR2D-PDEBench-Dx1-Tx1-MSE_1000.pt'
     n_all_samples: 100
     reduced_resolution: 1
     reduced_resolution_t: 1
@@ -33,7 +33,7 @@ data:
     real_time_range: [0, 5]
     in_seq: 10
     out_seq: 91
-    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+    metrics_list: ["RMSE", "nRMSE", "Rel_L2_Norm"]
 
 model:
   branch_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]

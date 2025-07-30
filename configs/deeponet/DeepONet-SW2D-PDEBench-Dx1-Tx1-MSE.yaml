@@ -2,7 +2,7 @@ data:
   name: 'SW2D-PDEBench'
   train:
     name: 'SW2D-PDEBench'
-    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/ShallowWater/PDEBench/npz/train'
+    dataset_path: '/media/NAS07/USER_PATH/jh/PDE/data/ShallowWater/PDEBench/npz/train'
     n_all_samples: 900
     reduced_resolution: 1
     reduced_resolution_t: 1
@@ -13,7 +13,7 @@ data:
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   val:
     name: 'SW2D-PDEBench'
-    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/ShallowWater/PDEBench/npz/test'
+    dataset_path: '/media/NAS07/USER_PATH/jh/PDE/data/ShallowWater/PDEBench/npz/test'
     n_all_samples: 100
     reduced_resolution: 1
     reduced_resolution_t: 1
@@ -24,8 +24,8 @@ data:
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   test:
     name: 'SW2D-PDEBench'
-    dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/ShallowWater/PDEBench/npz/test'
-    weight_path: ''
+    dataset_path: '/media/NAS07/USER_PATH/jh/PDE/data/ShallowWater/PDEBench/npz/test'
+    weight_path: '/media/NAS06/jiahao/Mamba_Transformer_PDE/DeepONet/SW2D/DeepONet-SW2D-PDEBench-Dx1-Tx1-MSE/DeepONet-SW2D-PDEBench-Dx1-Tx1-MSE_1000.pt'
     n_all_samples: 100
     reduced_resolution: 1
     reduced_resolution_t: 1

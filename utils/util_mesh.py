@@ -4,8 +4,8 @@ import numpy as np
 import sklearn.metrics
 import torch
 import torch.nn as nn
-from torch_geometric.data import Data
-from scipy.ndimage import gaussian_filter
+# from torch_geometric.data import Data
+# from scipy.ndimage import gaussian_filter
 
 
 class SquareMeshGenerator(object):

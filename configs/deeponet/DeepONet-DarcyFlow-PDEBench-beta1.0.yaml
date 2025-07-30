@@ -18,12 +18,13 @@ data:
     metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
   test:
     name: 'DarcyFlow-PDEBench'
-    dataset_path: '/media/ssd/data_temp/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta1.0_Train/test'
+    dataset_path: '/media/NAS07/USER_PATH/jh/PDE/data/DarcyFlow/PDEBench/2D_DarcyFlow_beta1.0_Train/test'
+    weight_path: '/media/NAS06/jiahao/Mamba_Transformer_PDE/DeepONet/DF2D/DeepONet-DarcyFlow-PDEBench-beta1.0/DeepONet-DarcyFlow-PDEBench-beta1.0_1900.pt'
     n_all_samples: 1000
     reduced_resolution: 1
     real_space_range: "1"
     beta: 1.0
-    metrics_list: ["MSE", "RMSE", "nRMSE", "Max"]
+    metrics_list: ["RMSE", "nRMSE", "Rel_L2_Norm"]
 model:
   branch_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
   trunk_layers: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]

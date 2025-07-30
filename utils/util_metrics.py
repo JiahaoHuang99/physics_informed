@@ -43,6 +43,9 @@ def eval_convection_diffusion(input, target, metrics_list):
             dict[metric_name] = metric_func(input, target)[2].item()
         elif metric_name in ['Max']:
             dict[metric_name] = metric_func(input, target)[3].item()
+        elif metric_name in ['Rel_L2_Norm']:
+            from train_utils.losses import LpLoss
+            dict[metric_name] = LpLoss()(input, target).item()
         else:
             raise NotImplementedError
 
@@ -64,6 +67,9 @@ def eval_incom_ns2d(input, target, metrics_list):
             dict[metric_name] = metric_func(input, target)[2].item()
         elif metric_name in ['Max']:
             dict[metric_name] = metric_func(input, target)[3].item()
+        elif metric_name in ['Rel_L2_Norm']:
+            from train_utils.losses import LpLoss
+            dict[metric_name] = LpLoss()(input, target).item()
         else:
             raise NotImplementedError
 
@@ -84,6 +90,9 @@ def eval_com_ns2d(input, target, metrics_list):
             dict[metric_name] = metric_func(input, target)[2].item()
         elif metric_name in ['Max']:
             dict[metric_name] = metric_func(input, target)[3].item()
+        elif metric_name in ['Rel_L2_Norm']:
+            from train_utils.losses import LpLoss
+            dict[metric_name] = LpLoss()(input, target).item()
         else:
             raise NotImplementedError
 
@@ -106,6 +115,9 @@ def eval_dr2d(input, target, metrics_list):
             dict[metric_name] = metric_func(input, target)[2].item()
         elif metric_name in ['Max']:
             dict[metric_name] = metric_func(input, target)[3].item()
+        elif metric_name in ['Rel_L2_Norm']:
+            from train_utils.losses import LpLoss
+            dict[metric_name] = LpLoss()(input, target).item()
         else:
             raise NotImplementedError
 
@@ -127,6 +139,9 @@ def eval_sw2d(input, target, metrics_list):
             dict[metric_name] = metric_func(input, target)[2].item()
         elif metric_name in ['Max']:
             dict[metric_name] = metric_func(input, target)[3].item()
+        elif metric_name in ['Rel_L2_Norm']:
+            from train_utils.losses import LpLoss
+            dict[metric_name] = LpLoss()(input, target).item()
         else:
             raise NotImplementedError
 
