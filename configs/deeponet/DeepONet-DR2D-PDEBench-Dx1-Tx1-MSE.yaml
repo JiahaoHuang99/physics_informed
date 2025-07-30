@@ -25,6 +25,7 @@ data:
   test:
     name: 'DR2D-PDEBench'
     dataset_path: '/home/jh2446/rds/rds-ai323-trafficcam/physics_graph_transformer/physics_graph_transformer/data/DiffusionReaction/PDEBench/npz/test'
+    weight_path: ''
     n_all_samples: 100
     reduced_resolution: 1
     reduced_resolution_t: 1
